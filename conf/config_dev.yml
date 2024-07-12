@@ -1,0 +1,26 @@
+port: 8091
+
+log:
+  logPath: ./logs
+  logName: app-server
+
+mysql:
+  user: root
+  password: xiaoguang
+  address: 127.0.0.1:3306
+  name: app_db
+
+qiniu:
+  accessKey: ey1SqHmKV9HSI0-2IHtV8KysxfKtJBNzRQYKvAUP
+  secretKey: FZomdOtDJpS368hWGLvJAK-q6QwTLUd9_l8A2oKc
+  bucket: insight-file
+  domain: https://file.lwoowl.cn
+
+baidusms:
+  apiKey: 00e4691a353c4b40ac112e200c569d71
+  secretKey: 942c4466e94a44579b82fc57eb730af2
+
+im:
+  appKey: <appkey>
+  appSecret: <secret>
+  apiUrl: https://api.juggleim.com
