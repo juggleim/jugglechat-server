@@ -2,6 +2,7 @@ package serversdk
 
 import (
 	"crypto/sha1"
+	"crypto/tls"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -47,6 +48,7 @@ func HttpDo(method, url string, header map[string]string, body string) (string, 
 
 /*
 respBs, err := HttpDoBytes("POST", url, headers, string(bodyBs))
+
 	if err != nil {
 		return nil, ApiCode_HttpTimeout, "", err
 	}
@@ -99,7 +101,14 @@ func (sdk *JuggleIMSdk) HttpCall(method, url string, req interface{}, resp inter
 }
 
 func HttpDoBytes(method, url string, header map[string]string, body string) ([]byte, error) {
-	client := &http.Client{}
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+	client := &http.Client{
+		Transport: tr,
+	}
 	request, err := http.NewRequest(method, url, strings.NewReader(body))
 	if err != nil {
 		return []byte{}, err

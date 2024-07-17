@@ -36,7 +36,7 @@ func main() {
 
 	server := gin.Default()
 	server.Use(CorsHandler())
-	group := server.Group("/appserver")
+	group := server.Group("/")
 	group.Use(apis.Validate)
 	group.POST("sms/send", apis.SmsSend)
 	group.POST("/sms_login", apis.SmsLogin)
