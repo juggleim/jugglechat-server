@@ -5,22 +5,22 @@ log:
   logName: app-server
 
 mysql:
-  user: root
-  password: xiaoguang
+  user: <db_user>
+  password: <db_password>
   address: 127.0.0.1:3306
   name: app_db
 
 qiniu:
-  accessKey: ey1SqHmKV9HSI0-2IHtV8KysxfKtJBNzRQYKvAUP
-  secretKey: FZomdOtDJpS368hWGLvJAK-q6QwTLUd9_l8A2oKc
-  bucket: insight-file
-  domain: https://file.lwoowl.cn
+  accessKey: <qiniu_ak>
+  secretKey: <qiniu_sk>
+  bucket: <qiniu_bucket>
+  domain: <bucket_domain>
 
 baidusms:
-  apiKey: 00e4691a353c4b40ac112e200c569d71
-  secretKey: 942c4466e94a44579b82fc57eb730af2
+  apiKey: <baidu_sms_ak>
+  secretKey: <baidu_sms_sk>
 
 im:
-  appKey: <appkey>
-  appSecret: <secret>
+  appKey: <juggleim_appkey>
+  appSecret: <juggleim_secret>
   apiUrl: https://api.juggleim.com
