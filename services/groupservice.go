@@ -12,13 +12,14 @@ type Group struct {
 	GroupName     string  `json:"group_name"`
 	GroupPortrait string  `json:"group_portrait"`
 	GrpMembers    []*User `json:"members"`
+	IsNotify      bool    `json:"is_notify"`
 }
 
 type Groups struct {
 	Items []*Group `json:"items"`
 }
 
-func UpdateGroup(grp Group) ErrorCode {
+func UpdateGroup(curUid string, grp Group) ErrorCode {
 	grpId, err := utils.Decode(grp.GroupId)
 	if err != nil || grpId == 0 {
 		return ErrorCode_ParseIntFail
@@ -34,6 +35,22 @@ func UpdateGroup(grp Group) ErrorCode {
 		GroupName:     grp.GroupName,
 		GroupPortrait: grp.GroupPortrait,
 	})
+	if grp.IsNotify {
+		//send notify msg
+		notify := GroupNotify{
+			Name: grp.GroupName,
+			Type: GroupNotifyType_Rename,
+		}
+		SendGroupMsg(serversdk.ImMessage{
+			SenderId:       curUid,
+			TargetId:       grp.GroupId,
+			MsgType:        GroupNotifyMsgType,
+			MsgContent:     utils.ToJson(notify),
+			IsStorage:      true,
+			IsCount:        false,
+			IsNotifySender: true,
+		})
+	}
 	return ErrorCode_Success
 }
 
@@ -50,7 +67,9 @@ func CreateGroup(curUid string, grp Group) (ErrorCode, *Group) {
 	}
 	curUserIdInt, _ := utils.Decode(curUid)
 	memberIdStrs := []string{}
+	members := []*User{}
 	if len(grp.GrpMembers) > 0 {
+		userDao := dbs.UserDao{}
 		memberDao := dbs.GroupMemberDao{}
 		dbMembers := []dbs.GroupMemberDao{}
 		needAddSelf := true
@@ -61,6 +80,17 @@ func CreateGroup(curUid string, grp Group) (ErrorCode, *Group) {
 			memberIdStrs = append(memberIdStrs, member.UserId)
 			userIdInt, err := utils.Decode(member.UserId)
 			if err == nil {
+				if member.UserId != curUid {
+					dbUser := userDao.FindByUserId(userIdInt)
+					u := &User{
+						UserId: member.UserId,
+					}
+					if dbUser != nil {
+						u.Avatar = dbUser.Avatar
+						u.Nickname = dbUser.Nickname
+					}
+					members = append(members, u)
+				}
 				dbMembers = append(dbMembers, dbs.GroupMemberDao{
 					GroupId:  grpId,
 					MemberId: userIdInt,
@@ -90,6 +120,21 @@ func CreateGroup(curUid string, grp Group) (ErrorCode, *Group) {
 	if code != ErrorCode_Success {
 		return code, nil
 	}
+	// send notify msg
+	notify := &GroupNotify{
+		Members: members,
+		Type:    GroupNotifyType_AddMember,
+	}
+	SendGroupMsg(serversdk.ImMessage{
+		SenderId:       curUid,
+		TargetId:       grpIdStr,
+		MsgType:        GroupNotifyMsgType,
+		MsgContent:     utils.ToJson(notify),
+		IsStorage:      true,
+		IsCount:        false,
+		IsNotifySender: true,
+	})
+
 	return ErrorCode_Success, &Group{
 		GroupId:       grpIdStr,
 		GroupName:     grp.GroupName,
@@ -97,13 +142,31 @@ func CreateGroup(curUid string, grp Group) (ErrorCode, *Group) {
 	}
 }
 
-func DelGroupMembers(grp Group) ErrorCode {
+var GroupNotifyMsgType string = "jgd:grpntf"
+
+type GroupNotify struct {
+	Name    string          `json:"name"`
+	Members []*User         `json:"members"`
+	Type    GroupNotifyType `json:"type"`
+}
+
+type GroupNotifyType int
+
+const (
+	GroupNotifyType_AddMember    = 1
+	GroupNotifyType_RemoveMember = 2
+	GroupNotifyType_Rename       = 3
+)
+
+func DelGroupMembers(curUid string, grp Group) ErrorCode {
 	grpId, err := utils.Decode(grp.GroupId)
 	if err != nil {
 		return ErrorCode_IdDecodeFail
 	}
 	memberIds := []string{}
+	members := []*User{}
 	if len(grp.GrpMembers) > 0 {
+		userDao := dbs.UserDao{}
 		memberDao := dbs.GroupMemberDao{}
 		delMemberIds := []int64{}
 		for _, member := range grp.GrpMembers {
@@ -111,6 +174,15 @@ func DelGroupMembers(grp Group) ErrorCode {
 			userIdInt, err := utils.Decode(member.UserId)
 			if err == nil {
 				delMemberIds = append(delMemberIds, userIdInt)
+				dbUser := userDao.FindByUserId(userIdInt)
+				u := &User{
+					UserId: member.UserId,
+				}
+				if dbUser != nil {
+					u.Nickname = dbUser.Nickname
+					u.Avatar = dbUser.Avatar
+				}
+				members = append(members, u)
 			}
 		}
 		if len(delMemberIds) > 0 {
@@ -125,17 +197,33 @@ func DelGroupMembers(grp Group) ErrorCode {
 		if code != ErrorCode_Success {
 			return code
 		}
+		// send notify msg
+		notify := &GroupNotify{
+			Members: members,
+			Type:    GroupNotifyType_RemoveMember,
+		}
+		SendGroupMsg(serversdk.ImMessage{
+			SenderId:       curUid,
+			TargetId:       grp.GroupId,
+			MsgType:        GroupNotifyMsgType,
+			MsgContent:     utils.ToJson(notify),
+			IsStorage:      true,
+			IsCount:        false,
+			IsNotifySender: true,
+		})
 	}
 	return ErrorCode_Success
 }
 
-func AddGroupMembers(grp Group) ErrorCode {
+func AddGroupMembers(curUid string, grp Group) ErrorCode {
 	grpId, err := utils.Decode(grp.GroupId)
 	if err != nil {
 		return ErrorCode_IdDecodeFail
 	}
 	memberIds := []string{}
+	members := []*User{}
 	if len(grp.GrpMembers) > 0 {
+		userDao := dbs.UserDao{}
 		memberDao := dbs.GroupMemberDao{}
 		dbMembers := []dbs.GroupMemberDao{}
 		for _, member := range grp.GrpMembers {
@@ -146,6 +234,17 @@ func AddGroupMembers(grp Group) ErrorCode {
 					GroupId:  grpId,
 					MemberId: userIdInt,
 				})
+				if member.UserId != curUid {
+					dbUser := userDao.FindByUserId(userIdInt)
+					u := &User{
+						UserId: member.UserId,
+					}
+					if dbUser != nil {
+						u.Nickname = dbUser.Nickname
+						u.Avatar = dbUser.Avatar
+					}
+					members = append(members, u)
+				}
 			} else {
 				break
 			}
@@ -165,6 +264,20 @@ func AddGroupMembers(grp Group) ErrorCode {
 		if code != ErrorCode_Success {
 			return code
 		}
+		// send notify msg
+		notify := &GroupNotify{
+			Members: members,
+			Type:    GroupNotifyType_AddMember,
+		}
+		SendGroupMsg(serversdk.ImMessage{
+			SenderId:       curUid,
+			TargetId:       grp.GroupId,
+			MsgType:        GroupNotifyMsgType,
+			MsgContent:     utils.ToJson(notify),
+			IsStorage:      true,
+			IsCount:        false,
+			IsNotifySender: true,
+		})
 	}
 	return ErrorCode_Success
 }

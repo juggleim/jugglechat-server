@@ -3,7 +3,9 @@ package services
 import (
 	"appserver/configures"
 	"appserver/serversdk"
+	"appserver/utils"
 	"errors"
+	"fmt"
 )
 
 var imsdk *serversdk.JuggleIMSdk
@@ -50,6 +52,15 @@ func DelGroupMembers2Im(req serversdk.GroupMembersReq) ErrorCode {
 
 func UpdateGroupInfo2Im(groupInfo serversdk.GroupInfo) ErrorCode {
 	code, _, err := imsdk.UpdateGroup(groupInfo)
+	if err == nil && code == serversdk.ApiCode_Success {
+		return ErrorCode_Success
+	}
+	return ErrorCode_Sync2ImFail
+}
+
+func SendGroupMsg(msg serversdk.ImMessage) ErrorCode {
+	code, _, err := imsdk.SendGroupMsg(msg)
+	fmt.Println("send grp msg:", code, err, utils.ToJson(msg))
 	if err == nil && code == serversdk.ApiCode_Success {
 		return ErrorCode_Success
 	}

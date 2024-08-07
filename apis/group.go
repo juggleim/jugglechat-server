@@ -28,7 +28,7 @@ func UpdateGroup(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, services.GetError(services.ErrorCode_ParamErr))
 		return
 	}
-	code := services.UpdateGroup(req)
+	code := services.UpdateGroup(GetCurrentUserId(ctx), req)
 	ctx.JSON(http.StatusOK, services.GetError(code))
 }
 
@@ -38,7 +38,7 @@ func AddGrpMembers(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, services.GetError(services.ErrorCode_ParamErr))
 		return
 	}
-	code := services.AddGroupMembers(req)
+	code := services.AddGroupMembers(GetCurrentUserId(ctx), req)
 	ctx.JSON(http.StatusOK, services.GetError(code))
 }
 
@@ -48,7 +48,7 @@ func DelGrpMembers(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, services.GetError(services.ErrorCode_ParamErr))
 		return
 	}
-	code := services.DelGroupMembers(req)
+	code := services.DelGroupMembers(GetCurrentUserId(ctx), req)
 	ctx.JSON(http.StatusOK, services.GetError(code))
 }
 

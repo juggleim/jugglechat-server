@@ -1,7 +1,6 @@
 package serversdk
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -19,7 +18,6 @@ type UserRegResp struct {
 func (sdk *JuggleIMSdk) Register(user User) (*UserRegResp, ApiCode, string, error) {
 	url := sdk.ApiUrl + "/apigateway/users/register"
 	resp := &UserRegResp{}
-	fmt.Println("url:", url)
 	code, traceId, err := sdk.HttpCall(http.MethodPost, url, user, resp)
 	return resp, code, traceId, err
 }
