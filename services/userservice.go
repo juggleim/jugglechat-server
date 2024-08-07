@@ -34,6 +34,22 @@ func QryUserInfo(curUid, userId string) (ErrorCode, *User) {
 	return ErrorCode_Success, retUser
 }
 
+func GetUserInfo(userId string) *User {
+	retUser := &User{
+		UserId: userId,
+	}
+	userIdInt, err := utils.Decode(userId)
+	if err != nil || userIdInt <= 0 {
+		return retUser
+	}
+	dbUser := dbs.UserDao{}.FindByUserId(userIdInt)
+	if dbUser != nil {
+		retUser.Nickname = dbUser.Nickname
+		retUser.Avatar = dbUser.Avatar
+	}
+	return retUser
+}
+
 func SearchByPhone(curUid, phone string) (ErrorCode, *Users) {
 	userDao := dbs.UserDao{}
 	userdb, err := userDao.FindByPhone(phone)

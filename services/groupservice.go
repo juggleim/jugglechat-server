@@ -122,8 +122,9 @@ func CreateGroup(curUid string, grp Group) (ErrorCode, *Group) {
 	}
 	// send notify msg
 	notify := &GroupNotify{
-		Members: members,
-		Type:    GroupNotifyType_AddMember,
+		Operator: GetUserInfo(curUid),
+		Members:  members,
+		Type:     GroupNotifyType_AddMember,
 	}
 	SendGroupMsg(serversdk.ImMessage{
 		SenderId:       curUid,
@@ -145,9 +146,10 @@ func CreateGroup(curUid string, grp Group) (ErrorCode, *Group) {
 var GroupNotifyMsgType string = "jgd:grpntf"
 
 type GroupNotify struct {
-	Name    string          `json:"name"`
-	Members []*User         `json:"members"`
-	Type    GroupNotifyType `json:"type"`
+	Operator *User           `json:"operator"`
+	Name     string          `json:"name"`
+	Members  []*User         `json:"members"`
+	Type     GroupNotifyType `json:"type"`
 }
 
 type GroupNotifyType int
@@ -199,8 +201,9 @@ func DelGroupMembers(curUid string, grp Group) ErrorCode {
 		}
 		// send notify msg
 		notify := &GroupNotify{
-			Members: members,
-			Type:    GroupNotifyType_RemoveMember,
+			Operator: GetUserInfo(curUid),
+			Members:  members,
+			Type:     GroupNotifyType_RemoveMember,
 		}
 		SendGroupMsg(serversdk.ImMessage{
 			SenderId:       curUid,
@@ -266,8 +269,9 @@ func AddGroupMembers(curUid string, grp Group) ErrorCode {
 		}
 		// send notify msg
 		notify := &GroupNotify{
-			Members: members,
-			Type:    GroupNotifyType_AddMember,
+			Operator: GetUserInfo(curUid),
+			Members:  members,
+			Type:     GroupNotifyType_AddMember,
 		}
 		SendGroupMsg(serversdk.ImMessage{
 			SenderId:       curUid,
