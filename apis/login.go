@@ -74,7 +74,7 @@ func SmsLogin(ctx *gin.Context) {
 		// 入库
 		token, u, err := services.RegisterOrLoginBySms(services.User{
 			Phone:    req.Phone,
-			Nickname: fmt.Sprintf("用户%s", services.RandomSms()),
+			Nickname: fmt.Sprintf("user%s", services.RandomSms()),
 		})
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, err)
