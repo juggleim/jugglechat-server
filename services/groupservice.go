@@ -38,6 +38,7 @@ func UpdateGroup(curUid string, grp Group) ErrorCode {
 	if grp.IsNotify {
 		//send notify msg
 		notify := GroupNotify{
+			Operator: GetUserInfo(curUid),
 			Name: grp.GroupName,
 			Type: GroupNotifyType_Rename,
 		}
