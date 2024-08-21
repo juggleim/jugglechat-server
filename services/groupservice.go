@@ -2,9 +2,10 @@ package services
 
 import (
 	"appserver/dbs"
-	"appserver/serversdk"
 	"appserver/utils"
 	"time"
+
+	imsdk "github.com/juggleim/imserver-sdk-go"
 )
 
 type Group struct {
@@ -30,7 +31,7 @@ func UpdateGroup(curUid string, grp Group) ErrorCode {
 		return ErrorCode_UserDbUpdateFail
 	}
 	//sync to im
-	UpdateGroupInfo2Im(serversdk.GroupInfo{
+	UpdateGroupInfo2Im(imsdk.GroupInfo{
 		GroupId:       grp.GroupId,
 		GroupName:     grp.GroupName,
 		GroupPortrait: grp.GroupPortrait,
@@ -42,14 +43,14 @@ func UpdateGroup(curUid string, grp Group) ErrorCode {
 			Name:     grp.GroupName,
 			Type:     GroupNotifyType_Rename,
 		}
-		SendGroupMsg(serversdk.ImMessage{
+		SendGroupMsg(imsdk.Message{
 			SenderId:       curUid,
-			TargetId:       grp.GroupId,
+			TargetIds:      []string{grp.GroupId},
 			MsgType:        GroupNotifyMsgType,
 			MsgContent:     utils.ToJson(notify),
-			IsStorage:      true,
-			IsCount:        false,
-			IsNotifySender: true,
+			IsStorage:      utils.BoolPtr(true),
+			IsCount:        utils.BoolPtr(false),
+			IsNotifySender: utils.BoolPtr(true),
 		})
 	}
 	return ErrorCode_Success
@@ -112,7 +113,7 @@ func CreateGroup(curUid string, grp Group) (ErrorCode, *Group) {
 	// add to im
 	grpIdStr, _ := utils.Encode(grpId)
 
-	code := CreateGroup2Im(serversdk.GroupMembersReq{
+	code := CreateGroup2Im(imsdk.GroupMembersReq{
 		GroupId:       grpIdStr,
 		GroupName:     grp.GroupName,
 		GroupPortrait: grp.GroupPortrait,
@@ -127,14 +128,14 @@ func CreateGroup(curUid string, grp Group) (ErrorCode, *Group) {
 		Members:  members,
 		Type:     GroupNotifyType_AddMember,
 	}
-	SendGroupMsg(serversdk.ImMessage{
+	SendGroupMsg(imsdk.Message{
 		SenderId:       curUid,
-		TargetId:       grpIdStr,
+		TargetIds:      []string{grpIdStr},
 		MsgType:        GroupNotifyMsgType,
 		MsgContent:     utils.ToJson(notify),
-		IsStorage:      true,
-		IsCount:        false,
-		IsNotifySender: true,
+		IsStorage:      utils.BoolPtr(true),
+		IsCount:        utils.BoolPtr(false),
+		IsNotifySender: utils.BoolPtr(true),
 	})
 
 	return ErrorCode_Success, &Group{
@@ -193,7 +194,7 @@ func DelGroupMembers(curUid string, grp Group) ErrorCode {
 		}
 	}
 	if len(memberIds) > 0 {
-		code := DelGroupMembers2Im(serversdk.GroupMembersReq{
+		code := DelGroupMembers2Im(imsdk.GroupMembersReq{
 			GroupId:   grp.GroupId,
 			MemberIds: memberIds,
 		})
@@ -206,14 +207,14 @@ func DelGroupMembers(curUid string, grp Group) ErrorCode {
 			Members:  members,
 			Type:     GroupNotifyType_RemoveMember,
 		}
-		SendGroupMsg(serversdk.ImMessage{
+		SendGroupMsg(imsdk.Message{
 			SenderId:       curUid,
-			TargetId:       grp.GroupId,
+			TargetIds:      []string{grp.GroupId},
 			MsgType:        GroupNotifyMsgType,
 			MsgContent:     utils.ToJson(notify),
-			IsStorage:      true,
-			IsCount:        false,
-			IsNotifySender: true,
+			IsStorage:      utils.BoolPtr(true),
+			IsCount:        utils.BoolPtr(false),
+			IsNotifySender: utils.BoolPtr(true),
 		})
 	}
 	return ErrorCode_Success
@@ -261,7 +262,7 @@ func AddGroupMembers(curUid string, grp Group) ErrorCode {
 		}
 	}
 	if len(memberIds) > 0 {
-		code := AddGroupMembers2Im(serversdk.GroupMembersReq{
+		code := AddGroupMembers2Im(imsdk.GroupMembersReq{
 			GroupId:   grp.GroupId,
 			MemberIds: memberIds,
 		})
@@ -274,14 +275,14 @@ func AddGroupMembers(curUid string, grp Group) ErrorCode {
 			Members:  members,
 			Type:     GroupNotifyType_AddMember,
 		}
-		SendGroupMsg(serversdk.ImMessage{
+		SendGroupMsg(imsdk.Message{
 			SenderId:       curUid,
-			TargetId:       grp.GroupId,
+			TargetIds:      []string{grp.GroupId},
 			MsgType:        GroupNotifyMsgType,
 			MsgContent:     utils.ToJson(notify),
-			IsStorage:      true,
-			IsCount:        false,
-			IsNotifySender: true,
+			IsStorage:      utils.BoolPtr(true),
+			IsCount:        utils.BoolPtr(false),
+			IsNotifySender: utils.BoolPtr(true),
 		})
 	}
 	return ErrorCode_Success

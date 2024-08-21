@@ -1,7 +1,6 @@
 package apis
 
 import (
-	"appserver/serversdk"
 	"appserver/services"
 	"appserver/utils"
 	"fmt"
@@ -10,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	imsdk "github.com/juggleim/imserver-sdk-go"
 )
 
 const (
@@ -89,7 +89,7 @@ func SmsLogin(ctx *gin.Context) {
 			NickName:      u.Nickname,
 			Avatar:        u.Avatar,
 			Status:        u.Status,
-			ImToken: services.RegisterImToken(serversdk.User{
+			ImToken: services.RegisterImToken(imsdk.User{
 				UserId:       u.UserId,
 				Nickname:     u.Nickname,
 				UserPortrait: u.Avatar,

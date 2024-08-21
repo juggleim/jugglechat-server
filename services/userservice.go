@@ -2,10 +2,11 @@ package services
 
 import (
 	"appserver/dbs"
-	"appserver/serversdk"
 	"appserver/utils"
 	"fmt"
 	"time"
+
+	imsdk "github.com/juggleim/imserver-sdk-go"
 
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -94,7 +95,7 @@ func UpdateUser(user User) ErrorCode {
 		return ErrorCode_UserDbUpdateFail
 	}
 	//sync to im
-	RegisterImToken(serversdk.User{
+	RegisterImToken(imsdk.User{
 		UserId:       user.UserId,
 		Nickname:     user.Nickname,
 		UserPortrait: user.Avatar,
@@ -130,7 +131,7 @@ func RegisterOrLoginBySms(user User) (string, *User, error) {
 		idStr, _ := utils.Encode(dbId)
 		retUser.UserId = idStr
 		auth, _ := generateAuthorization(idStr)
-		imToken := RegisterImToken(serversdk.User{
+		imToken := RegisterImToken(imsdk.User{
 			UserId:       idStr,
 			Nickname:     retUser.Nickname,
 			UserPortrait: retUser.Avatar,

@@ -61,6 +61,7 @@ func main() {
 
 	fmt.Println("Start Server with port:", configures.Config.Port)
 	server.Run(fmt.Sprintf(":%d", configures.Config.Port))
+
 }
 func CorsHandler() gin.HandlerFunc {
 	return func(context *gin.Context) {

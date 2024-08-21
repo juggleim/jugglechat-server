@@ -46,3 +46,7 @@ func ToJson(val interface{}) string {
 	}
 	return ""
 }
+
+func BoolPtr(f bool) *bool {
+	return &f
+}

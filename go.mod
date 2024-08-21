@@ -1,6 +1,8 @@
 module appserver
 
-go 1.18
+go 1.21.10
+
+require github.com/juggleim/imserver-sdk-go v1.0.1
 
 require (
 	github.com/astaxie/beego v1.12.3 // indirect
