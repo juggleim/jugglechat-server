@@ -194,13 +194,6 @@ func DelGroupMembers(curUid string, grp Group) ErrorCode {
 		}
 	}
 	if len(memberIds) > 0 {
-		code := DelGroupMembers2Im(imsdk.GroupMembersReq{
-			GroupId:   grp.GroupId,
-			MemberIds: memberIds,
-		})
-		if code != ErrorCode_Success {
-			return code
-		}
 		// send notify msg
 		notify := &GroupNotify{
 			Operator: GetUserInfo(curUid),
@@ -216,6 +209,13 @@ func DelGroupMembers(curUid string, grp Group) ErrorCode {
 			IsCount:        utils.BoolPtr(false),
 			IsNotifySender: utils.BoolPtr(true),
 		})
+		code := DelGroupMembers2Im(imsdk.GroupMembersReq{
+			GroupId:   grp.GroupId,
+			MemberIds: memberIds,
+		})
+		if code != ErrorCode_Success {
+			return code
+		}
 	}
 	return ErrorCode_Success
 }
