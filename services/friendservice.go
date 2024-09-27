@@ -3,6 +3,8 @@ package services
 import (
 	"appserver/dbs"
 	"appserver/utils"
+
+	imsdk "github.com/juggleim/imserver-sdk-go"
 )
 
 func AddFriend(userId, friendId string) ErrorCode {
@@ -29,8 +31,27 @@ func AddFriend(userId, friendId string) ErrorCode {
 	if err != nil {
 		return ErrorCode_UserDbUpdateFail
 	}
+	//send notify msg
+	notify := &FriendNotify{
+		Type: 0,
+	}
+	SendPrivateMsg(imsdk.Message{
+		SenderId:       userId,
+		TargetIds:      []string{friendId},
+		MsgType:        FriendNotifyMsgType,
+		MsgContent:     utils.ToJson(notify),
+		IsStorage:      utils.BoolPtr(true),
+		IsCount:        utils.BoolPtr(false),
+		IsNotifySender: utils.BoolPtr(true),
+	})
 	return ErrorCode_Success
 
+}
+
+var FriendNotifyMsgType string = "jgd:friendntf"
+
+type FriendNotify struct {
+	Type int `json:"type"`
 }
 
 func QryFrineds(userId, startId string, count int) (ErrorCode, *Friends) {

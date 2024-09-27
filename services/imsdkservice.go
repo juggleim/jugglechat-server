@@ -67,3 +67,11 @@ func SendGroupMsg(msg imsdk.Message) ErrorCode {
 	}
 	return ErrorCode_Sync2ImFail
 }
+
+func SendPrivateMsg(msg imsdk.Message) ErrorCode {
+	code, _, err := sdk.SendPrivateMsg(msg)
+	if err == nil && code == imsdk.ApiCode_Success {
+		return ErrorCode_Success
+	}
+	return ErrorCode_Sync2ImFail
+}

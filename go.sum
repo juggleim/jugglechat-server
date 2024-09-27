@@ -115,6 +115,8 @@ github.com/juggleim/imserver-sdk-go v1.0.1 h1:ILqoCiZTJu33jTY49SXo3FEONhHzXsdJsE
 github.com/juggleim/imserver-sdk-go v1.0.1/go.mod h1:xdxsGeW0b4GOYJvKJwnaU04Z+jGaUSrBvzeSbNvNOFk=
 github.com/juggleim/imserver-sdk-go v1.0.2 h1:OiwYVdLXDBrooJ5Yr01Ldm24id9iA1rM/KR/r7FUHmk=
 github.com/juggleim/imserver-sdk-go v1.0.2/go.mod h1:xdxsGeW0b4GOYJvKJwnaU04Z+jGaUSrBvzeSbNvNOFk=
+github.com/juggleim/imserver-sdk-go v1.0.3 h1:l2K1QAeAfmHZxb1KdR744H923z5kNtx6wyKxX3Jh5ag=
+github.com/juggleim/imserver-sdk-go v1.0.3/go.mod h1:xdxsGeW0b4GOYJvKJwnaU04Z+jGaUSrBvzeSbNvNOFk=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/klauspost/cpuid/v2 v2.0.9/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=
 github.com/klauspost/cpuid/v2 v2.2.4 h1:acbojRNwl3o09bUq+yDCtZFc1aiwaAAxtcn8YkZXnvk=
