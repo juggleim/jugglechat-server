@@ -4,7 +4,7 @@ import (
 	"appserver/apis"
 	"appserver/configures"
 	"appserver/dbs"
-	"appserver/logs"
+	"appserver/log"
 	"appserver/services"
 	"fmt"
 	"net/http"
@@ -18,19 +18,21 @@ func main() {
 		fmt.Println("Init Configures failed", err)
 		return
 	}
+	//init log
+	log.InitLogs()
 	//init sms
 	if err := services.InitSms(); err != nil {
-		fmt.Println("Init Sms failed", err)
+		log.Error("Init Sms failed", err)
 		return
 	}
 	//init im sdk
 	if err := services.InitImSdk(); err != nil {
-		fmt.Println("Init Im Sdk failed", err)
+		log.Error("Init Im Sdk failed", err)
 		return
 	}
 	//init mysql
 	if err := dbs.InitMysql(); err != nil {
-		logs.Error("Init Mysql failed.", err)
+		log.Error("Init Mysql failed.", err)
 		return
 	}
 

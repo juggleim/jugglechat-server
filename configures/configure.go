@@ -1,8 +1,7 @@
 package configures
 
 import (
-	"fmt"
-	"io/ioutil"
+	"os"
 
 	"gopkg.in/yaml.v3"
 )
@@ -45,8 +44,7 @@ const (
 )
 
 func InitConfigures() error {
-	env := "dev"
-	cfBytes, err := ioutil.ReadFile(fmt.Sprintf("conf/config_%s.yml", env))
+	cfBytes, err := os.ReadFile("conf/config.yml")
 	if err == nil {
 		var conf AppConfig
 		yaml.Unmarshal(cfBytes, &conf)
