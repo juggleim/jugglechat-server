@@ -8,6 +8,7 @@ import (
 	"github.com/juggleim/commons/errs"
 	"github.com/juggleim/commons/responses"
 	"github.com/juggleim/commons/tools"
+	"github.com/juggleim/jugglechat-server/admins/apis/models"
 	"github.com/juggleim/jugglechat-server/admins/services"
 )
 
@@ -43,4 +44,18 @@ func QryGroups(ctx *gin.Context) {
 		return
 	}
 	responses.AdminSuccessHttpResp(ctx, grps)
+}
+
+func DissolveGroup(ctx *gin.Context) {
+	var req models.GroupIds
+	if err := ctx.ShouldBindJSON(&req); err != nil || req.AppKey == "" {
+		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
+		return
+	}
+	code := services.DissolveGroups(ctxs.ToCtx(ctx), &req)
+	if code != errs.AdminErrorCode_Success {
+		responses.AdminErrorHttpResp(ctx, code)
+		return
+	}
+	responses.AdminSuccessHttpResp(ctx, nil)
 }

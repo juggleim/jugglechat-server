@@ -14,3 +14,8 @@ type Groups struct {
 	Items  []*Group `json:"items"`
 	Offset string   `json:"offset,omitempty"`
 }
+
+type GroupIds struct {
+	AppKey   string   `json:"app_key"`
+	GroupIds []string `json:"group_ids`
+}

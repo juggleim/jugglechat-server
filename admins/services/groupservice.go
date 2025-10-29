@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/juggleim/commons/errs"
+	"github.com/juggleim/commons/imsdk"
 	"github.com/juggleim/commons/tools"
 	apimodels "github.com/juggleim/jugglechat-server/admins/apis/models"
 	"github.com/juggleim/jugglechat-server/storages"
@@ -64,4 +65,19 @@ func QryGroupInfo(appkey, groupId string) *apimodels.Group {
 		GroupName:     grp.GroupName,
 		GroupPortrait: grp.GroupPortrait,
 	}
+}
+
+func DissolveGroups(ctx context.Context, req *apimodels.GroupIds) errs.AdminErrorCode {
+	appkey := req.AppKey
+	sdk := imsdk.GetImSdk(appkey)
+	storage := storages.NewGroupStorage()
+	memberStorage := storages.NewGroupMemberStorage()
+	for _, groupId := range req.GroupIds {
+		storage.Delete(appkey, groupId)
+		memberStorage.DeleteByGroupId(appkey, groupId)
+		if sdk != nil {
+			sdk.DissolveGroup(groupId)
+		}
+	}
+	return errs.AdminErrorCode_Success
 }

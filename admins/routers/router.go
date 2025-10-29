@@ -201,6 +201,7 @@ func Route(group *gin.RouterGroup) *gin.RouterGroup {
 
 	//groups
 	group.GET("/apps/groups/list", apis.QryGroups)
+	group.POST("/apps/groups/dissolve", apis.DissolveGroup)
 
 	//convers
 	group.GET("/apps/convers/list", apis.QryConversations)
