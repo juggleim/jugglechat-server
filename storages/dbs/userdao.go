@@ -277,7 +277,7 @@ func (user UserDao) CountByTime(appkey string, start, end int64) int64 {
 	return count
 }
 
-func (user UserDao) QryUsers(appkey string, startId, limit int64, isPositiveOrder bool) ([]*models.User, error) {
+func (user UserDao) QryUsers(appkey, name string, startId, limit int64, isPositiveOrder bool) ([]*models.User, error) {
 	var items []*UserDao
 	whereStr := "app_key=?"
 	params := []interface{}{appkey}
@@ -291,6 +291,10 @@ func (user UserDao) QryUsers(appkey string, startId, limit int64, isPositiveOrde
 			whereStr = whereStr + " and id<?"
 			params = append(params, startId)
 		}
+	}
+	if name != "" {
+		whereStr = whereStr + " and nickname like ?"
+		params = append(params, "%"+name+"%")
 	}
 	err := dbcommons.GetDb().Where(whereStr, params...).Order(orderBy).Limit(limit).Find(&items).Error
 	ret := []*models.User{}

@@ -35,7 +35,7 @@ type IUserStorage interface {
 	UpdateEmail(appkey, userId, email string) error
 	Count(appkey string) int
 	CountByTime(appkey string, start, end int64) int64
-	QryUsers(appkey string, startId, limit int64, isPositiveOrder bool) ([]*User, error)
+	QryUsers(appkey, name string, startId, limit int64, isPositiveOrder bool) ([]*User, error)
 }
 
 type UserExt struct {

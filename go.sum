@@ -190,8 +190,6 @@ github.com/json-iterator/go v1.1.10/go.mod h1:KdQUCv79m/52Kvf8AW2vK1V8akMuk1QjK/
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
-github.com/juggleim/commons v1.0.17 h1:PwltlI4enrqXHHoncvOUNo7708ojdZA8mG/lcQLmcjo=
-github.com/juggleim/commons v1.0.17/go.mod h1:1bp7TnNj4j6Bju2No+jPRUQKjOeC6Boopi5uDoJ0+Lo=
 github.com/juggleim/commons v1.0.18 h1:dQtxh0AZyniF1j8GW+5TUrI1sIa+Ca2JPS1+ez7Bjpo=
 github.com/juggleim/commons v1.0.18/go.mod h1:1bp7TnNj4j6Bju2No+jPRUQKjOeC6Boopi5uDoJ0+Lo=
 github.com/juggleim/imserver-sdk-go v1.0.10 h1:H9YpARzy7xnjiAETAZcetDEQJ1va+9SmrjTZ7C1OLoE=

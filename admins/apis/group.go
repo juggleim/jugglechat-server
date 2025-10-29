@@ -17,6 +17,8 @@ func QryGroups(ctx *gin.Context) {
 		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
 		return
 	}
+	groupId := ctx.Query("group_id")
+	name := ctx.Query("name")
 	offset := ctx.Query("offset")
 	var count int64 = 20
 	var err error
@@ -35,7 +37,7 @@ func QryGroups(ctx *gin.Context) {
 			isPositiveOrder = true
 		}
 	}
-	code, grps := services.QryGroups(ctxs.ToCtx(ctx), appkey, offset, count, isPositiveOrder)
+	code, grps := services.QryGroups(ctxs.ToCtx(ctx), appkey, groupId, name, offset, count, isPositiveOrder)
 	if code != errs.AdminErrorCode_Success {
 		responses.AdminErrorHttpResp(ctx, code)
 		return

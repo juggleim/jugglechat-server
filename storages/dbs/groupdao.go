@@ -102,7 +102,7 @@ func (group GroupDao) UpdateCreatorId(appkey, groupId, creatorId string) error {
 	return err
 }
 
-func (group GroupDao) QryGroups(appkey string, startId, limit int64, isPositive bool) ([]*models.Group, error) {
+func (group GroupDao) QryGroups(appkey, name string, startId, limit int64, isPositive bool) ([]*models.Group, error) {
 	var items []*GroupDao
 	whereStr := "app_key=?"
 	params := []interface{}{appkey}
@@ -116,6 +116,10 @@ func (group GroupDao) QryGroups(appkey string, startId, limit int64, isPositive 
 			whereStr = whereStr + " and id<?"
 			params = append(params, startId)
 		}
+	}
+	if name != "" {
+		whereStr = whereStr + " and group_name like ?"
+		params = append(params, "%"+name+"%")
 	}
 	err := dbcommons.GetDb().Where(whereStr, params...).Order(orderBy).Limit(limit).Find(&items).Error
 	ret := []*models.Group{}

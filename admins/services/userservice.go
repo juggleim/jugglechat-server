@@ -11,7 +11,7 @@ import (
 	"github.com/juggleim/jugglechat-server/storages/models"
 )
 
-func QryUsers(ctx context.Context, appkey, offset string, limit int64, isPositive bool) (errs.AdminErrorCode, *apimodels.Users) {
+func QryUsers(ctx context.Context, appkey, userId, name, offset string, limit int64, isPositive bool) (errs.AdminErrorCode, *apimodels.Users) {
 	var startId int64 = 0
 	var err error
 	if offset != "" {
@@ -24,10 +24,9 @@ func QryUsers(ctx context.Context, appkey, offset string, limit int64, isPositiv
 		Items: []*apimodels.User{},
 	}
 	storage := storages.NewUserStorage()
-	users, err := storage.QryUsers(appkey, startId, limit, isPositive)
-	if err == nil {
-		for _, user := range users {
-			ret.Offset, _ = tools.EncodeInt(user.ID)
+	if userId != "" {
+		user, err := storage.FindByUserId(appkey, userId)
+		if err == nil && user != nil {
 			ret.Items = append(ret.Items, &apimodels.User{
 				UserId:      user.UserId,
 				Nickname:    user.Nickname,
@@ -37,6 +36,22 @@ func QryUsers(ctx context.Context, appkey, offset string, limit int64, isPositiv
 				Status:      int32(user.Status),
 				CreatedTime: user.CreatedTime.UnixMilli(),
 			})
+		}
+	} else {
+		users, err := storage.QryUsers(appkey, name, startId, limit, isPositive)
+		if err == nil {
+			for _, user := range users {
+				ret.Offset, _ = tools.EncodeInt(user.ID)
+				ret.Items = append(ret.Items, &apimodels.User{
+					UserId:      user.UserId,
+					Nickname:    user.Nickname,
+					Avatar:      user.UserPortrait,
+					Pinyin:      user.Pinyin,
+					UserType:    user.UserType,
+					Status:      int32(user.Status),
+					CreatedTime: user.CreatedTime.UnixMilli(),
+				})
+			}
 		}
 	}
 	return errs.AdminErrorCode_Success, ret

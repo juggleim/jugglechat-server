@@ -18,6 +18,8 @@ func QryUsers(ctx *gin.Context) {
 		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
 		return
 	}
+	userId := ctx.Query("user_id")
+	name := ctx.Query("name")
 	offset := ctx.Query("offset")
 	var count int64 = 20
 	var err error
@@ -36,7 +38,7 @@ func QryUsers(ctx *gin.Context) {
 			isPositiveOrder = true
 		}
 	}
-	code, users := services.QryUsers(ctxs.ToCtx(ctx), appkey, offset, count, isPositiveOrder)
+	code, users := services.QryUsers(ctxs.ToCtx(ctx), appkey, userId, name, offset, count, isPositiveOrder)
 	if code != errs.AdminErrorCode_Success {
 		responses.AdminErrorHttpResp(ctx, code)
 		return

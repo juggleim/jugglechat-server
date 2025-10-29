@@ -68,7 +68,7 @@ type IGroupStorage interface {
 	UpdateGroupMuteStatus(appkey, groupId string, isMute int32) error
 	UpdateGrpName(appkey, groupId, groupName, groupPortrait string) error
 	UpdateCreatorId(appkey, groupId, creatorId string) error
-	QryGroups(appkey string, startId, limit int64, isPositive bool) ([]*Group, error)
+	QryGroups(appkey, name string, startId, limit int64, isPositive bool) ([]*Group, error)
 }
 
 type GroupExt struct {
