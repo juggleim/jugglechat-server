@@ -23,7 +23,6 @@ import (
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/qr"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 )
 
@@ -201,10 +200,6 @@ func SmsLogin(ctx *gin.Context) {
 				nickname = user.Nickname
 				userPortrait = user.UserPortrait
 			} else {
-				if err != gorm.ErrRecordNotFound {
-					responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
-					return
-				}
 				userId = utils.GenerateUUIDShort11()
 				err = storage.Create(dbModels.User{
 					UserId:   userId,
@@ -298,10 +293,6 @@ func EmailLogin(ctx *gin.Context) {
 			nickname = user.Nickname
 			userportrait = user.UserPortrait
 		} else {
-			if err != gorm.ErrRecordNotFound {
-				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
-				return
-			}
 			userId = utils.GenerateUUIDShort11()
 			err = storage.Create(dbModels.User{
 				UserId:   userId,
