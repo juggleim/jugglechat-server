@@ -23,29 +23,34 @@ func QryGroups(ctx context.Context, appkey, groupId, name string, offset string,
 		Items: []*apimodels.Group{},
 	}
 	storage := storages.NewGroupStorage()
+	memberStorage := storages.NewGroupMemberStorage()
 	if groupId != "" {
 		grp, err := storage.FindById(appkey, groupId)
 		if err == nil && grp != nil {
-			ret.Items = append(ret.Items, &apimodels.Group{
+			apiGrp := &apimodels.Group{
 				GroupId:       grp.GroupId,
 				GroupName:     grp.GroupName,
 				GroupPortrait: grp.GroupPortrait,
 				Owner:         QryUserInfo(appkey, grp.CreatorId),
 				CreatedTime:   grp.CreatedTime.UnixMilli(),
-			})
+			}
+			apiGrp.MemberCount = memberStorage.CountByGroup(appkey, groupId)
+			ret.Items = append(ret.Items, apiGrp)
 		}
 	} else {
 		grps, err := storage.QryGroups(appkey, name, startId, limit, isPositive)
 		if err == nil {
 			for _, grp := range grps {
 				ret.Offset, _ = tools.EncodeInt(grp.ID)
-				ret.Items = append(ret.Items, &apimodels.Group{
+				apiGrp := &apimodels.Group{
 					GroupId:       grp.GroupId,
 					GroupName:     grp.GroupName,
 					GroupPortrait: grp.GroupPortrait,
 					Owner:         QryUserInfo(appkey, grp.CreatorId),
 					CreatedTime:   grp.CreatedTime.UnixMilli(),
-				})
+				}
+				apiGrp.MemberCount = memberStorage.CountByGroup(appkey, grp.GroupId)
+				ret.Items = append(ret.Items, apiGrp)
 			}
 		}
 	}
