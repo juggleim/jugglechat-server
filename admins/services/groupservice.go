@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/juggleim/commons/errs"
 	"github.com/juggleim/commons/imsdk"
@@ -73,16 +74,19 @@ func QryGroupInfo(appkey, groupId string) *apimodels.Group {
 }
 
 func DissolveGroups(ctx context.Context, req *apimodels.GroupIds) errs.AdminErrorCode {
+	fmt.Println(tools.ToJson(req))
 	appkey := req.AppKey
 	sdk := imsdk.GetImSdk(appkey)
 	storage := storages.NewGroupStorage()
 	memberStorage := storages.NewGroupMemberStorage()
 	for _, groupId := range req.GroupIds {
-		storage.Delete(appkey, groupId)
-		memberStorage.DeleteByGroupId(appkey, groupId)
+		err := storage.Delete(appkey, groupId)
+		fmt.Println("xxx:", err)
+		err = memberStorage.DeleteByGroupId(appkey, groupId)
 		if sdk != nil {
 			sdk.DissolveGroup(groupId)
 		}
+		fmt.Println("yyy:", err)
 	}
 	return errs.AdminErrorCode_Success
 }

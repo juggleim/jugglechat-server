@@ -17,5 +17,5 @@ type Groups struct {
 
 type GroupIds struct {
 	AppKey   string   `json:"app_key"`
-	GroupIds []string `json:"group_ids`
+	GroupIds []string `json:"group_ids"`
 }
