@@ -16,3 +16,5 @@ imAdminDomain: http://127.0.0.1:8090
 
 botConnector:
   domain: <bot-connector url>
+
+commercial: false

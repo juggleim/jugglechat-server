@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/juggleim/commons/configures"
 	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/commons/errs"
 	"github.com/juggleim/commons/responses"
@@ -35,7 +36,8 @@ func Login(ctx *gin.Context) {
 			Authorization: authStr,
 			Env:           "private", //public
 			// RoleId:        account.RoleId,
-			RoleType: account.RoleType,
+			RoleType:     account.RoleType,
+			IsCommercial: configures.Config.Commercial,
 		})
 	} else {
 		ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
@@ -57,7 +59,8 @@ type LoginResp struct {
 	Authorization string `json:"authorization"`
 	Env           string `json:"env"`
 	// RoleId        int    `json:"role_id"`
-	RoleType int `json:"role_type"`
+	RoleType     int  `json:"role_type"`
+	IsCommercial bool `json:"is_commercial"`
 }
 
 func AddAccount(ctx *gin.Context) {
