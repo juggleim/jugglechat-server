@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juggleim/jugglechat-server/admins/apis"
@@ -12,7 +13,7 @@ import (
 )
 
 func RouteLogin(eng *gin.Engine, prefix string) *gin.RouterGroup {
-	eng.Use(CorsHandler(), InjectCtx())
+	eng.Use(CorsHandler(prefix), InjectCtx())
 	group := eng.Group("/" + prefix)
 	group.Use(apis.Validate)
 
@@ -27,165 +28,86 @@ func RouteLogin(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	return group
 }
 
+var proxyPathMap map[string]string
+
+func init() {
+	proxyPathMap = map[string]string{}
+	proxyPathMap["/apps/active"] = http.MethodPost
+	proxyPathMap["/apps/create"] = http.MethodPost
+	proxyPathMap["/apps/list"] = http.MethodGet
+	proxyPathMap["/apps/info"] = http.MethodGet
+	proxyPathMap[""] = http.MethodPost
+	proxyPathMap[""] = http.MethodGet
+
+	proxyPathMap["/apps/configs/set"] = http.MethodPost
+	proxyPathMap["/apps/configs/get"] = http.MethodPost
+	proxyPathMap["/apps/eventsubconfig/set"] = http.MethodPost
+	proxyPathMap["/apps/eventsubconfig/get"] = http.MethodGet
+	//translate
+	proxyPathMap["/apps/translate/set"] = http.MethodPost
+	proxyPathMap["/apps/translate/get"] = http.MethodGet
+	//sms
+	proxyPathMap["/apps/sms/set"] = http.MethodPost
+	proxyPathMap["/apps/sms/get"] = http.MethodGet
+	//rtc
+	proxyPathMap["/apps/rtcconf/set"] = http.MethodPost
+	proxyPathMap["/apps/rtcconf/get"] = http.MethodGet
+	proxyPathMap["/apps/zegoconf/set"] = http.MethodPost
+	proxyPathMap["/apps/zegoconf/get"] = http.MethodGet
+	proxyPathMap["/apps/agoraconf/set"] = http.MethodPost
+	proxyPathMap["/apps/agoraconf/get"] = http.MethodGet
+	proxyPathMap["/apps/livekitconf/set"] = http.MethodPost
+	proxyPathMap["/apps/livekitconf/get"] = http.MethodGet
+	proxyPathMap["/apps/iospushcer/set"] = http.MethodPost
+	proxyPathMap["/apps/iospushcer/upload"] = http.MethodPost
+	proxyPathMap["/apps/iospushcer/get"] = http.MethodGet
+	proxyPathMap["/apps/fcmpushconf/upload"] = http.MethodPost
+	proxyPathMap["/apps/fcmpushconf/get"] = http.MethodGet
+	proxyPathMap["/apps/androidpushconf/set"] = http.MethodPost
+	proxyPathMap["/apps/androidpushconf/get"] = http.MethodGet
+
+	proxyPathMap["/apps/fileconf/set"] = http.MethodPost
+	proxyPathMap["/apps/fileconf/get"] = http.MethodGet
+	proxyPathMap["/apps/fileconf/switch/get"] = http.MethodGet
+	proxyPathMap["/apps/fileconf/switch/set"] = http.MethodPost
+	//logs
+	proxyPathMap["/apps/clientlogs/notify"] = http.MethodPost
+	proxyPathMap["/apps/clientlogs/list"] = http.MethodGet
+	proxyPathMap["/apps/clientlogs/download"] = http.MethodGet
+	proxyPathMap["/apps/serverlogs/userconnect"] = http.MethodGet
+	proxyPathMap["/apps/serverlogs/connect"] = http.MethodGet
+	proxyPathMap["/apps/serverlogs/business"] = http.MethodGet
+
+	//statistic
+	proxyPathMap["/apps/statistic/msg"] = http.MethodGet
+	proxyPathMap["/apps/statistic/useractivity"] = http.MethodGet
+	proxyPathMap["/apps/statistic/userreg"] = http.MethodGet
+	proxyPathMap["/apps/statistic/connectcount"] = http.MethodGet
+	proxyPathMap["/apps/statistic/maxconnectcount"] = http.MethodGet
+	proxyPathMap["/apps/statistic/chrmconnectcount"] = http.MethodGet
+	proxyPathMap["/apps/statistic/maxchrmconnectcount"] = http.MethodGet
+	proxyPathMap["/apps/statistic/maxchrmconnectcount_v2"] = http.MethodGet
+
+	proxyPathMap["/apps/sensitivewords/list"] = http.MethodGet
+	proxyPathMap["/apps/sensitivewords/import"] = http.MethodPost
+	proxyPathMap["/apps/sensitivewords/add"] = http.MethodPost
+	proxyPathMap["/apps/sensitivewords/delete"] = http.MethodPost
+}
+
 func RouteProxy(group *gin.RouterGroup) *gin.RouterGroup {
 	imAdminProxy := getImAdminProxy()
 	if imAdminProxy != nil {
-		group.POST("/apps/active", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.POST("/apps/create", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/list", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/info", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.POST("/apps/configs/set", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.POST("/apps/configs/get", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.POST("/apps/eventsubconfig/set", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/eventsubconfig/get", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		//translate
-		group.POST("/apps/translate/set", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/translate/get", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		//sms
-		group.POST("/apps/sms/set", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/sms/get", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		//rtc
-		group.POST("/apps/rtcconf/set", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/rtcconf/get", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.POST("/apps/zegoconf/set", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/zegoconf/get", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.POST("/apps/agoraconf/set", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/agoraconf/get", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.POST("/apps/livekitconf/set", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/livekitconf/get", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-
-		group.POST("/apps/iospushcer/set", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.POST("/apps/iospushcer/upload", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/iospushcer/get", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.POST("/apps/fcmpushconf/upload", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/fcmpushconf/get", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.POST("/apps/androidpushconf/set", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/androidpushconf/get", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-
-		group.POST("/apps/fileconf/set", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/fileconf/get", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/fileconf/switch/get", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.POST("/apps/fileconf/switch/set", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		//logs
-		group.POST("/apps/clientlogs/notify", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/clientlogs/list", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/clientlogs/download", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/serverlogs/userconnect", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/serverlogs/connect", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/serverlogs/business", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-
-		//statistic
-		group.GET("/apps/statistic/msg", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/statistic/useractivity", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/statistic/userreg", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/statistic/connectcount", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/statistic/maxconnectcount", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/statistic/chrmconnectcount", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/statistic/maxchrmconnectcount", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.GET("/apps/statistic/maxchrmconnectcount_v2", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-
-		group.GET("/apps/sensitivewords/list", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.POST("/apps/sensitivewords/import", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.POST("/apps/sensitivewords/add", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-		group.POST("/apps/sensitivewords/delete", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
+		for path, method := range proxyPathMap {
+			if method == http.MethodPost {
+				group.POST(path, func(ctx *gin.Context) {
+					imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+				})
+			} else if method == http.MethodGet {
+				group.GET(path, func(ctx *gin.Context) {
+					imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+				})
+			}
+		}
 	}
 	return group
 }
@@ -217,14 +139,20 @@ func Route(group *gin.RouterGroup) *gin.RouterGroup {
 	return group
 }
 
-func CorsHandler() gin.HandlerFunc {
+func CorsHandler(prefix string) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		method := context.Request.Method
-		context.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		context.Writer.Header().Set("Access-Control-Allow-Headers", "*")
-		context.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PATCH, PUT")
-		context.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
-		context.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		path := context.Request.URL.Path
+		if prefix != "" && strings.HasPrefix(path, "/"+prefix) {
+			path = path[len(prefix)+1:]
+		}
+		if _, exist := proxyPathMap[path]; !exist {
+			context.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+			context.Writer.Header().Set("Access-Control-Allow-Headers", "*")
+			context.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PATCH, PUT")
+			context.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
+			context.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		}
 
 		if method == "OPTIONS" {
 			context.AbortWithStatus(http.StatusNoContent)
@@ -253,14 +181,6 @@ func getImAdminProxy() *httputil.ReverseProxy {
 
 				r.Header.Set("X-Forwared-For", r.RemoteAddr)
 			}
-			// proxy.ModifyResponse = func(resp *http.Response) error {
-			// 	resp.Header.Set("Access-Control-Allow-Origin", "*")
-			// 	resp.Header.Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PATCH, PUT")
-			// 	resp.Header.Set("Access-Control-Allow-Headers", "*")
-			// 	resp.Header.Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
-			// 	resp.Header.Set("Access-Control-Allow-Credentials", "true")
-			// 	return nil
-			// }
 			proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 				http.Error(w, "Internal error", http.StatusServiceUnavailable)
 			}
