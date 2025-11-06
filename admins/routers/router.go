@@ -253,6 +253,14 @@ func getImAdminProxy() *httputil.ReverseProxy {
 
 				r.Header.Set("X-Forwared-For", r.RemoteAddr)
 			}
+			proxy.ModifyResponse = func(resp *http.Response) error {
+				resp.Header.Set("Access-Control-Allow-Origin", "*")
+				resp.Header.Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PATCH, PUT")
+				resp.Header.Set("Access-Control-Allow-Headers", "*")
+				resp.Header.Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
+				resp.Header.Set("Access-Control-Allow-Credentials", "true")
+				return nil
+			}
 			proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 				http.Error(w, "Internal error", http.StatusServiceUnavailable)
 			}
