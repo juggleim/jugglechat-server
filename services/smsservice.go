@@ -5,13 +5,13 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/juggleim/commons/appinfos"
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/dbcommons"
-	"github.com/juggleim/commons/errs"
-	"github.com/juggleim/commons/smsengines"
-	utils "github.com/juggleim/commons/tools"
+	"github.com/juggleim/jugglechat-server/commons/appinfos"
+	"github.com/juggleim/jugglechat-server/commons/ctxs"
+	"github.com/juggleim/jugglechat-server/commons/errs"
+	"github.com/juggleim/jugglechat-server/commons/smsengines"
+	utils "github.com/juggleim/jugglechat-server/commons/tools"
 	"github.com/juggleim/jugglechat-server/storages"
+	"github.com/juggleim/jugglechat-server/storages/dbs"
 	"github.com/juggleim/jugglechat-server/storages/models"
 )
 
@@ -94,7 +94,7 @@ func GetSmsEngine(appkey string) smsengines.ISmsEngine {
 }
 
 func loadSmsEngine(appInfo *appinfos.AppInfo) {
-	extDao := dbcommons.AppExtDao{}
+	extDao := dbs.AppExtDao{}
 	ext, err := extDao.Find(appInfo.AppKey, "sms_engine_conf")
 	if err == nil && ext.AppItemValue != "" {
 		smsConf := &SmsEngineConf{}

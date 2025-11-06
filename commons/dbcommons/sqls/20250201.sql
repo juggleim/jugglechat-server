@@ -1,3 +1,60 @@
+CREATE TABLE IF NOT EXISTS `accounts` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `account` varchar(45) DEFAULT NULL,
+  `password` varchar(45) DEFAULT NULL,
+  `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `state` tinyint DEFAULT '0',
+  `role_type` tinyint DEFAULT 0,
+  `parent_account` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_account` (`account`),
+  KEY `idx_parent` (`parent_account`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `accountapprels` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `app_key` varchar(20) DEFAULT '',
+  `account` varchar(20) DEFAULT '',
+  `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_account` (`app_key`,`account`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `apps` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `app_key` varchar(45) NOT NULL,
+  `app_secret` varchar(45) NOT NULL,
+  `app_secure_key` varchar(45) NOT NULL,
+  `app_status` tinyint DEFAULT '0',
+  `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `app_type` tinyint DEFAULT '0',
+  `app_name` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_appkey` (`app_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `appexts` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `app_key` varchar(50) DEFAULT NULL,
+  `app_item_key` varchar(50) DEFAULT NULL,
+  `app_item_value` varchar(2048) DEFAULT NULL,
+  `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `IDX_APPKEY_APPITEMKEY` (`app_key`,`app_item_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `globalconfs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `conf_key` varchar(50) DEFAULT NULL,
+  `conf_value` varchar(2000) DEFAULT NULL,
+  `created_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_key` (`conf_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 CREATE TABLE IF NOT EXISTS `fileconfs` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `app_key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -227,39 +284,35 @@ CREATE TABLE IF NOT EXISTS `telebotrels` (
   KEY `idx_userid` (`app_key`,`user_id`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS `posts` (
+CREATE TABLE IF NOT EXISTS `converconfs` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `post_id` varchar(32) DEFAULT NULL,
-  `title` varchar(200) DEFAULT NULL,
-  `content` mediumblob,
-  `content_brief` varchar(5000) DEFAULT NULL,
-  `is_delete` tinyint DEFAULT '0',
-  `user_id` varchar(32) DEFAULT NULL,
-  `post_exset` mediumblob,
-  `created_time` bigint DEFAULT '0',
+  `conver_id` varchar(100) DEFAULT '',
+  `conver_type` tinyint DEFAULT '0',
+  `sub_channel` varchar(32) DEFAULT '',
+  `item_key` varchar(100) DEFAULT '',
+  `item_value` varchar(2000) DEFAULT '',
+  `item_type` tinyint DEFAULT '0',
+  `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
   `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-  `status` tinyint DEFAULT '0',
-  `app_key` varchar(20) DEFAULT NULL,
+  `app_key` varchar(20) DEFAULT '',
   PRIMARY KEY (`id`),
-  KEY `uniq_id` (`app_key`,`post_id`)
+  UNIQUE KEY `uniq_key` (`app_key`,`conver_id`,`conver_type`,`sub_channel`,`item_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS `postcomments` (
+CREATE TABLE IF NOT EXISTS `userconverconfs`(
   `id` int NOT NULL AUTO_INCREMENT,
-  `comment_id` varchar(32) DEFAULT NULL,
-  `post_id` varchar(32) DEFAULT NULL,
-  `parent_comment_id` varchar(32) DEFAULT NULL,
-  `parent_user_id` varchar(32) DEFAULT NULL,
-  `user_id` varchar(32) DEFAULT NULL,
-  `text` varchar(5000) DEFAULT NULL,
-  `created_time` bigint DEFAULT NULL,
+  `user_id` varchar(32) DEFAULT '',
+  `conver_id` varchar(100) DEFAULT '',
+  `conver_type` tinyint DEFAULT '0',
+  `sub_channel` varchar(32) DEFAULT '',
+  `item_key` varchar(100) DEFAULT '',
+  `item_value` varchar(2000) DEFAULT '',
+  `item_type` tinyint DEFAULT '0',
+  `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
   `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-  `is_delete` tinyint DEFAULT '0',
-  `status` tinyint DEFAULT '0',
-  `app_key` varchar(20) DEFAULT NULL,
+  `app_key` varchar(20) DEFAULT '',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uniq_id` (`app_key`,`comment_id`),
-  KEY `idx_post` (`app_key`,`post_id`,`created_time`)
+  UNIQUE KEY `uniq_key` (`app_key`,`conver_id`,`conver_type`,`sub_channel`,`item_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS `feedbacks` (
@@ -273,6 +326,35 @@ CREATE TABLE IF NOT EXISTS `feedbacks` (
   PRIMARY KEY (`id`),
   KEY `idx_appkey` (`app_key`,`user_id`),
   KEY `idx_time` (`app_key`,`created_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `applications` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `app_id` VARCHAR(32) NULL,
+  `app_name` VARCHAR(50) NULL,
+  `app_icon` VARCHAR(500) NULL,
+  `app_desc` VARCHAR(500) NULL,
+  `app_url` VARCHAR(500) NULL,
+  `created_time` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_time` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `app_order` INT NULL DEFAULT 0,
+  `app_key` VARCHAR(20) NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `uniq_id` (`app_key`, `app_id`),
+  INDEX `idx_order` (`app_key`, `app_order`, `created_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `banusers` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` varchar(32) NOT NULL,
+  `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `end_time` bigint DEFAULT '0',
+  `scope_key` varchar(20) NOT NULL DEFAULT 'default',
+  `scope_value` varchar(1000) DEFAULT '',
+  `ext` varchar(100) DEFAULT NULL,
+  `app_key` varchar(20) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_appkey_userid` (`app_key`,`user_id`,`scope_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_version','20250201');

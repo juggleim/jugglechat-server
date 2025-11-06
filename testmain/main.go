@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/juggleim/commons/configures"
-	"github.com/juggleim/commons/dbcommons"
+	"github.com/juggleim/jugglechat-server/commons/configures"
+	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/log"
 	"github.com/juggleim/jugglechat-server/storages/dbs"
 )

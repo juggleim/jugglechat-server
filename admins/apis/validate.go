@@ -7,11 +7,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/errs"
-	"github.com/juggleim/commons/responses"
-	utils "github.com/juggleim/commons/tools"
 	"github.com/juggleim/jugglechat-server/admins/services"
+	"github.com/juggleim/jugglechat-server/commons/ctxs"
+	"github.com/juggleim/jugglechat-server/commons/errs"
+	"github.com/juggleim/jugglechat-server/commons/responses"
+	utils "github.com/juggleim/jugglechat-server/commons/tools"
 )
 
 const (

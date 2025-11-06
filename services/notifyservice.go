@@ -3,10 +3,10 @@ package services
 import (
 	"context"
 
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/imsdk"
-	utils "github.com/juggleim/commons/tools"
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/commons/ctxs"
+	"github.com/juggleim/jugglechat-server/commons/imsdk"
+	utils "github.com/juggleim/jugglechat-server/commons/tools"
 
 	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 )

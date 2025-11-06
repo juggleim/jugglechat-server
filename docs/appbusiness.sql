@@ -15,10 +15,10 @@ CREATE TABLE IF NOT EXISTS `accounts` (
 CREATE TABLE IF NOT EXISTS `accountapprels` (
   `id` int NOT NULL AUTO_INCREMENT,
   `app_key` varchar(20) DEFAULT '',
-  `account_id` int DEFAULT '0',
+  `account` varchar(20) DEFAULT '',
   `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uniq_app` (`account_id`,`app_key`)
+  UNIQUE KEY `uniq_account` (`app_key`,`account`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS `apps` (
@@ -221,6 +221,44 @@ CREATE TABLE IF NOT EXISTS `smsrecords` (
   KEY `idx_mail` (`app_key`,`email`,`created_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+CREATE TABLE IF NOT EXISTS `ai_engines` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `engine_type` tinyint DEFAULT '0',
+  `engine_conf` varchar(5000) DEFAULT NULL,
+  `status` tinyint DEFAULT '0',
+  `app_key` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_appkey` (`app_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `assistant_prompts` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` varchar(32) DEFAULT NULL,
+  `prompts` varchar(2000) DEFAULT NULL,
+  `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `app_key` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_id` (`app_key`,`id`),
+  KEY `idx_user` (`app_key`,`user_id`,`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `botconfs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `bot_id` varchar(32) NULL,
+  `nickname` varchar(50) DEFAULT NULL,
+  `bot_portrait` varchar(200) DEFAULT NULL,
+  `description` varchar(500) DEFAULT NULL,
+  `bot_type` tinyint DEFAULT '0',
+  `bot_conf` varchar(2000) NULL,
+  `status` tinyint DEFAULT '0',
+  `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `app_key` varchar(20) NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `uniq_botid` (`app_key`, `bot_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 CREATE TABLE IF NOT EXISTS `telebots` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` varchar(50) DEFAULT NULL,
@@ -244,19 +282,6 @@ CREATE TABLE IF NOT EXISTS `telebotrels` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_botid` (`app_key`,`tele_bot_id`),
   KEY `idx_userid` (`app_key`,`user_id`,`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE IF NOT EXISTS `feedbacks` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `app_key` varchar(50) DEFAULT NULL,
-  `user_id` varchar(32) DEFAULT NULL,
-  `category` varchar(100) DEFAULT NULL,
-  `content` mediumblob,
-  `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-  `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
-  PRIMARY KEY (`id`),
-  KEY `idx_appkey` (`app_key`,`user_id`),
-  KEY `idx_time` (`app_key`,`created_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS `converconfs` (
@@ -290,7 +315,20 @@ CREATE TABLE IF NOT EXISTS `userconverconfs`(
   UNIQUE KEY `uniq_key` (`app_key`,`conver_id`,`conver_type`,`sub_channel`,`item_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `applications` (
+CREATE TABLE IF NOT EXISTS `feedbacks` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `app_key` varchar(50) DEFAULT NULL,
+  `user_id` varchar(32) DEFAULT NULL,
+  `category` varchar(100) DEFAULT NULL,
+  `content` mediumblob,
+  `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`),
+  KEY `idx_appkey` (`app_key`,`user_id`),
+  KEY `idx_time` (`app_key`,`created_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `applications` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `app_id` VARCHAR(32) NULL,
   `app_name` VARCHAR(50) NULL,
@@ -319,5 +357,4 @@ CREATE TABLE IF NOT EXISTS `banusers` (
   UNIQUE KEY `uniq_appkey_userid` (`app_key`,`user_id`,`scope_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatcommondb_version','20250201');
-INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_version','20250918');
+INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_version','20250201');

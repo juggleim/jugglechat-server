@@ -3,7 +3,7 @@ package dbs
 import (
 	"fmt"
 
-	"github.com/juggleim/commons/dbcommons"
+	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 )
 
 type AccountAppRelDao struct {
@@ -30,9 +30,9 @@ func (rel AccountAppRelDao) BatchDelete(account string, appkeys []string) error 
 	return dbcommons.GetDb().Where("account=? and app_key in (?)", account, appkeys).Delete(&rel).Error
 }
 
-func (rel AccountAppRelDao) FindByAppkey(account string, appkey string) *dbcommons.AppInfoDao {
-	var appItem dbcommons.AppInfoDao
-	sql := fmt.Sprintf("select app.* from %s as rel left join %s as app on rel.app_key=app.app_key where rel.account=? and rel.app_key=?", rel.TableName(), dbcommons.AppInfoDao{}.TableName())
+func (rel AccountAppRelDao) FindByAppkey(account string, appkey string) *AppInfoDao {
+	var appItem AppInfoDao
+	sql := fmt.Sprintf("select app.* from %s as rel left join %s as app on rel.app_key=app.app_key where rel.account=? and rel.app_key=?", rel.TableName(), AppInfoDao{}.TableName())
 	err := dbcommons.GetDb().Raw(sql, account, appkey).Take(&appItem).Error
 	if err != nil {
 		return nil
@@ -40,9 +40,9 @@ func (rel AccountAppRelDao) FindByAppkey(account string, appkey string) *dbcommo
 	return &appItem
 }
 
-func (rel AccountAppRelDao) QryApps(account string, limit int64, offset int64) ([]*dbcommons.AppInfoDao, error) {
-	var list []*dbcommons.AppInfoDao
-	sql := fmt.Sprintf("select app.* from %s as rel left join %s as app on rel.app_key=app.app_key where rel.account=? and app.id<?", rel.TableName(), dbcommons.AppInfoDao{}.TableName())
+func (rel AccountAppRelDao) QryApps(account string, limit int64, offset int64) ([]*AppInfoDao, error) {
+	var list []*AppInfoDao
+	sql := fmt.Sprintf("select app.* from %s as rel left join %s as app on rel.app_key=app.app_key where rel.account=? and app.id<?", rel.TableName(), AppInfoDao{}.TableName())
 	err := dbcommons.GetDb().Raw(sql, account, offset).Order("app.id desc").Limit(limit).Find(&list).Error
 	return list, err
 }

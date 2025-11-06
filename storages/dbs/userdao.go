@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/juggleim/commons/dbcommons"
-	utils "github.com/juggleim/commons/tools"
+	"github.com/juggleim/jugglechat-server/commons/dbcommons"
+	utils "github.com/juggleim/jugglechat-server/commons/tools"
 	"github.com/juggleim/jugglechat-server/storages/models"
 )
 

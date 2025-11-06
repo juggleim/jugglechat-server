@@ -7,12 +7,11 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juggleim/commons/configures"
-	"github.com/juggleim/commons/dbcommons"
 	adminRouters "github.com/juggleim/jugglechat-server/admins/routers"
+	"github.com/juggleim/jugglechat-server/commons/configures"
+	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/log"
 	"github.com/juggleim/jugglechat-server/routers"
-	"github.com/juggleim/jugglechat-server/storages/dbs/dbmigrations"
 )
 
 func main() {
@@ -29,7 +28,7 @@ func main() {
 		return
 	}
 	//upgrade db
-	dbmigrations.Upgrade()
+	dbcommons.Upgrade()
 
 	httpServer := gin.Default()
 	routers.Route(httpServer, "jim")

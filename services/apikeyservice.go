@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"time"
 
-	utils "github.com/juggleim/commons/tools"
+	utils "github.com/juggleim/jugglechat-server/commons/tools"
 	"github.com/juggleim/jugglechat-server/services/pbobjs"
 )
 

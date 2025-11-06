@@ -9,8 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/juggleim/commons/configures"
-
+	"github.com/juggleim/jugglechat-server/commons/configures"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 )

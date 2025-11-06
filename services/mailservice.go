@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/juggleim/commons/appinfos"
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/dbcommons"
-	"github.com/juggleim/commons/emailengines"
-	"github.com/juggleim/commons/errs"
-	"github.com/juggleim/commons/tools"
+	"github.com/juggleim/jugglechat-server/commons/appinfos"
+	"github.com/juggleim/jugglechat-server/commons/ctxs"
+	"github.com/juggleim/jugglechat-server/commons/emailengines"
+	"github.com/juggleim/jugglechat-server/commons/errs"
+	"github.com/juggleim/jugglechat-server/commons/tools"
 	"github.com/juggleim/jugglechat-server/storages"
+	"github.com/juggleim/jugglechat-server/storages/dbs"
 	"github.com/juggleim/jugglechat-server/storages/models"
 	"gopkg.in/yaml.v3"
 )
@@ -112,7 +112,7 @@ func GetMailEngine(appkey string) emailengines.IEmailEngine {
 }
 
 func loadMailEngine(appInfo *appinfos.AppInfo) {
-	extDao := dbcommons.AppExtDao{}
+	extDao := dbs.AppExtDao{}
 	ext, err := extDao.Find(appInfo.AppKey, "mail_engine_conf")
 	if err == nil && ext.AppItemValue != "" {
 		mailConf := &MailEngineConf{}

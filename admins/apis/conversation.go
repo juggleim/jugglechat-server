@@ -2,13 +2,13 @@ package apis
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juggleim/commons/errs"
-	"github.com/juggleim/commons/imsdk"
-	"github.com/juggleim/commons/responses"
-	"github.com/juggleim/commons/tools"
 	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 	"github.com/juggleim/jugglechat-server/admins/apis/models"
 	"github.com/juggleim/jugglechat-server/admins/services"
+	"github.com/juggleim/jugglechat-server/commons/errs"
+	"github.com/juggleim/jugglechat-server/commons/imsdk"
+	"github.com/juggleim/jugglechat-server/commons/responses"
+	"github.com/juggleim/jugglechat-server/commons/tools"
 )
 
 func QryConversations(ctx *gin.Context) {

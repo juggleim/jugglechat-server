@@ -3,9 +3,9 @@ package services
 import (
 	"context"
 
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/errs"
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/commons/ctxs"
+	"github.com/juggleim/jugglechat-server/commons/errs"
 	"github.com/juggleim/jugglechat-server/storages"
 )
 

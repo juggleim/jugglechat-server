@@ -1,4 +1,4 @@
-package dbmigrations
+package dbcommons
 
 import (
 	"bufio"
@@ -7,8 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/juggleim/commons/dbcommons"
-	utils "github.com/juggleim/commons/tools"
+	utils "github.com/juggleim/jugglechat-server/commons/tools"
 )
 
 //go:embed sqls/*
@@ -24,11 +23,9 @@ type CountResult struct {
 }
 
 func Upgrade() {
-	// upgrade commons db
-	dbcommons.Upgrade()
 	// upgrade jchat db
 	var currVersion int64 = 0
-	dao := dbcommons.GlobalConfDao{}
+	dao := GlobalConfDao{}
 	conf, err := dao.FindByKey(JChatDbVersionKey)
 	if err == nil {
 		ver, err := utils.String2Int64(conf.ConfValue)
@@ -36,7 +33,7 @@ func Upgrade() {
 			currVersion = ver
 		}
 	} else {
-		err = dao.Create(dbcommons.GlobalConfDao{
+		err = dao.Create(GlobalConfDao{
 			ConfKey:   JChatDbVersionKey,
 			ConfValue: fmt.Sprintf("%d", initVersion),
 		})
@@ -69,7 +66,7 @@ func Upgrade() {
 				err := executeSqlFile(sqlFileName)
 				if err == nil {
 					fmt.Println("[DbMigration]execute sql file success:", sqlFileName)
-					dao.Upsert(dbcommons.GlobalConfDao{
+					dao.Upsert(GlobalConfDao{
 						ConfKey:   JChatDbVersionKey,
 						ConfValue: fmt.Sprintf("%d", ver),
 					})
@@ -99,7 +96,7 @@ func executeSqlFile(fileName string) error {
 		if strings.HasSuffix(line, ";") {
 			query := strings.TrimSpace(queryBuilder.String())
 			if query != "" {
-				if err := dbcommons.GetDb().Exec(query).Error; err != nil {
+				if err := GetDb().Exec(query).Error; err != nil {
 					fmt.Println("[DbMigration_Err]Execute sql error:", err, query)
 				}
 			}

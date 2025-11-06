@@ -4,13 +4,13 @@ import (
 	"context"
 	"sync"
 
-	"github.com/juggleim/commons/appinfos"
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/dbcommons"
-	"github.com/juggleim/commons/errs"
-	utils "github.com/juggleim/commons/tools"
-	"github.com/juggleim/commons/transengines"
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/commons/appinfos"
+	"github.com/juggleim/jugglechat-server/commons/ctxs"
+	"github.com/juggleim/jugglechat-server/commons/errs"
+	utils "github.com/juggleim/jugglechat-server/commons/tools"
+	"github.com/juggleim/jugglechat-server/commons/transengines"
+	"github.com/juggleim/jugglechat-server/storages/dbs"
 )
 
 func Translate(ctx context.Context, req *apimodels.TransReq) (errs.IMErrorCode, *apimodels.TransReq) {
@@ -66,7 +66,7 @@ func GetTransEngine(appkey string) transengines.ITransEngine {
 }
 
 func loadTransEngine(appInfo *appinfos.AppInfo) {
-	extDao := dbcommons.AppExtDao{}
+	extDao := dbs.AppExtDao{}
 	ext, err := extDao.Find(appInfo.AppKey, "trans_engine_conf")
 	if err == nil && ext.AppItemValue != "" {
 		transConf := &TransEngineConf{}

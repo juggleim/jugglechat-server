@@ -190,12 +190,6 @@ github.com/json-iterator/go v1.1.10/go.mod h1:KdQUCv79m/52Kvf8AW2vK1V8akMuk1QjK/
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
-github.com/juggleim/commons v1.0.18 h1:dQtxh0AZyniF1j8GW+5TUrI1sIa+Ca2JPS1+ez7Bjpo=
-github.com/juggleim/commons v1.0.18/go.mod h1:1bp7TnNj4j6Bju2No+jPRUQKjOeC6Boopi5uDoJ0+Lo=
-github.com/juggleim/commons v1.0.19 h1:iat0WlZLjHhUk6OkaDzKUJZg1TPm3AO5IGDQWrkw5Xk=
-github.com/juggleim/commons v1.0.19/go.mod h1:1bp7TnNj4j6Bju2No+jPRUQKjOeC6Boopi5uDoJ0+Lo=
-github.com/juggleim/commons v1.0.20 h1:+AUzBMi0PAlphzwjobnOXKm8sfbeU0qL6M4PFfQrYvI=
-github.com/juggleim/commons v1.0.20/go.mod h1:1bp7TnNj4j6Bju2No+jPRUQKjOeC6Boopi5uDoJ0+Lo=
 github.com/juggleim/imserver-sdk-go v1.0.10 h1:H9YpARzy7xnjiAETAZcetDEQJ1va+9SmrjTZ7C1OLoE=
 github.com/juggleim/imserver-sdk-go v1.0.10/go.mod h1:xdxsGeW0b4GOYJvKJwnaU04Z+jGaUSrBvzeSbNvNOFk=
 github.com/klauspost/compress v1.18.0 h1:c/Cqfb0r+Yi+JtIEq73FWXVkRonBlf0CRNYc8Zttxdo=
