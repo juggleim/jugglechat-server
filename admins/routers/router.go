@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juggleim/jugglechat-server/admins/apis"
@@ -36,8 +35,6 @@ func init() {
 	proxyPathMap["/apps/create"] = http.MethodPost
 	proxyPathMap["/apps/list"] = http.MethodGet
 	proxyPathMap["/apps/info"] = http.MethodGet
-	proxyPathMap[""] = http.MethodPost
-	proxyPathMap[""] = http.MethodGet
 
 	proxyPathMap["/apps/configs/set"] = http.MethodPost
 	proxyPathMap["/apps/configs/get"] = http.MethodPost
@@ -100,10 +97,12 @@ func RouteProxy(group *gin.RouterGroup) *gin.RouterGroup {
 		for path, method := range proxyPathMap {
 			if method == http.MethodPost {
 				group.POST(path, func(ctx *gin.Context) {
+					ctx.Request.Header.Set("jchat-proxy", "1")
 					imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
 				})
 			} else if method == http.MethodGet {
 				group.GET(path, func(ctx *gin.Context) {
+					ctx.Request.Header.Set("jchat-proxy", "1")
 					imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
 				})
 			}
@@ -142,17 +141,11 @@ func Route(group *gin.RouterGroup) *gin.RouterGroup {
 func CorsHandler(prefix string) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		method := context.Request.Method
-		path := context.Request.URL.Path
-		if prefix != "" && strings.HasPrefix(path, "/"+prefix) {
-			path = path[len(prefix)+1:]
-		}
-		if _, exist := proxyPathMap[path]; !exist {
-			context.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-			context.Writer.Header().Set("Access-Control-Allow-Headers", "*")
-			context.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PATCH, PUT")
-			context.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
-			context.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		}
+		context.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		context.Writer.Header().Set("Access-Control-Allow-Headers", "*")
+		context.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PATCH, PUT")
+		context.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
+		context.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 
 		if method == "OPTIONS" {
 			context.AbortWithStatus(http.StatusNoContent)
