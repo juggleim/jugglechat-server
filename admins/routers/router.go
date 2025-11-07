@@ -135,6 +135,10 @@ func Route(group *gin.RouterGroup) *gin.RouterGroup {
 	group.POST("/apps/applications/delete", apis.DelApplications)
 	group.GET("/apps/applications/list", apis.QryApplications)
 
+	//email setting
+	group.POST("/apps/email/set", apis.SetEmailConf)
+	group.GET("/apps/email/get", apis.GetEmailConf)
+
 	return group
 }
 

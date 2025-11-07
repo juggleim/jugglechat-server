@@ -121,6 +121,9 @@ func loadMailEngine(appInfo *appinfos.AppInfo) {
 			if mailConf.Channel == "ali" && mailConf.AliMailEngine != nil && mailConf.AliMailEngine.AccessKeyId != "" && mailConf.AliMailEngine.AccessKeySecret != "" {
 				appInfo.MailEngine = mailConf.AliMailEngine
 				return
+			} else if mailConf.Channel == "engagelab" && mailConf.EngagelabEmailEngine != nil && mailConf.EngagelabEmailEngine.Url != "" && mailConf.EngagelabEmailEngine.ApiKey != "" && mailConf.EngagelabEmailEngine.ApiUser != "" {
+				appInfo.MailEngine = mailConf.EngagelabEmailEngine
+				return
 			}
 		}
 	}

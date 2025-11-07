@@ -9,9 +9,9 @@ import (
 )
 
 type SmsBaoEngine struct {
-	Username string
-	Password string
-	Template string
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Template string `json:"template"`
 }
 
 func (eng *SmsBaoEngine) SmsSend(phone string, params map[string]interface{}) error {
