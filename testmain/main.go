@@ -6,7 +6,6 @@ import (
 	"github.com/juggleim/jugglechat-server/commons/configures"
 	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/log"
-	"github.com/juggleim/jugglechat-server/storages/dbs"
 )
 
 func main() {
@@ -22,8 +21,4 @@ func main() {
 		log.Error("Init Mysql failed.", err)
 		return
 	}
-
-	dao := dbs.UserDao{}
-	users, err := dao.QryUsers("appkey", "ser", 0, 10, false)
-	fmt.Println(err, users)
 }

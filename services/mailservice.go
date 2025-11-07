@@ -128,6 +128,7 @@ func loadMailEngine(appInfo *appinfos.AppInfo) {
 }
 
 type MailEngineConf struct {
-	Channel       string                       `json:"channel,omitempty"`
-	AliMailEngine *emailengines.AliEmailEngine `json:"ali,omitempty"`
+	Channel              string                             `json:"channel,omitempty"`
+	AliMailEngine        *emailengines.AliEmailEngine       `json:"ali,omitempty"`
+	EngagelabEmailEngine *emailengines.EngagelabEmailEngine `json:"engagelab"`
 }
