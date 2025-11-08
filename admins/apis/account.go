@@ -51,7 +51,7 @@ type AccountReq struct {
 	Account     string `json:"account"`
 	Password    string `json:"password"`
 	NewPassword string `json:"new_password"`
-	RoleId      int    `json:"role_id"`
+	RoleType    int    `json:"role_type"`
 }
 
 type LoginResp struct {
@@ -69,7 +69,7 @@ func AddAccount(ctx *gin.Context) {
 		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
 		return
 	}
-	code := services.AddAccount(ctxs.ToCtx(ctx), req.Account, req.Password, req.RoleId)
+	code := services.AddAccount(ctxs.ToCtx(ctx), req.Account, req.Password, req.RoleType)
 	if code != errs.AdminErrorCode_Success {
 		responses.AdminErrorHttpResp(ctx, code)
 		return
