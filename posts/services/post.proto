@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option go_package = "services/pbobjs";
+
+message PostExt{
+  string postId = 1;
+  repeated PostExtItem exts = 2;
+}
+
+message PostExtItem {
+  string key = 1;
+  string value = 2;
+  int64 timestamp = 3;
+  UserInfo userInfo = 4;
+}
+
+message UserInfo{
+  string userId = 1;
+  string nickname = 2;
+  string userPortrait = 3;
+}
