@@ -2,7 +2,7 @@ package routers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juggleim/jugglechat-server-post/apis"
+	"github.com/juggleim/jugglechat-server/posts/apis"
 )
 
 func Route(group *gin.RouterGroup) {
