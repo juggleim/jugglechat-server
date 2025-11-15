@@ -4,8 +4,10 @@ import (
 	"context"
 	"time"
 
+	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 	apimodels "github.com/juggleim/jugglechat-server/admins/apis/models"
 	"github.com/juggleim/jugglechat-server/commons/errs"
+	"github.com/juggleim/jugglechat-server/commons/imsdk"
 	"github.com/juggleim/jugglechat-server/commons/tools"
 	"github.com/juggleim/jugglechat-server/storages"
 	"github.com/juggleim/jugglechat-server/storages/models"
@@ -74,28 +76,44 @@ func QryUserInfo(appkey, userId string) *apimodels.User {
 }
 
 func BanUsers(ctx context.Context, req *apimodels.BanUsersReq) errs.AdminErrorCode {
-	storage := storages.NewBanUserStorage()
+	userStorage := storages.NewUserStorage()
 	appkey := req.AppKey
+	banUsers := &juggleimsdk.BanUsers{
+		Items: []*juggleimsdk.BanUser{},
+	}
 	for _, user := range req.Items {
 		var endTime int64 = user.EndTime
 		if endTime == 0 && user.EndTimeOffset > 0 {
 			endTime = time.Now().UnixMilli() + user.EndTimeOffset
 		}
-		storage.Upsert(models.BanUser{
-			UserId:      user.UserId,
-			CreatedTime: time.Now(),
-			EndTime:     endTime,
-			AppKey:      appkey,
+		banUsers.Items = append(banUsers.Items, &juggleimsdk.BanUser{
+			UserId:  user.UserId,
+			EndTime: endTime,
 		})
+		userStorage.UpdateStatus(appkey, user.UserId, models.UserStatus_Ban)
+	}
+	sdk := imsdk.GetImSdk(appkey)
+	if sdk != nil {
+		sdk.BanUsers(banUsers)
 	}
 	return errs.AdminErrorCode_Success
 }
 
 func UnBanUsers(ctx context.Context, req *apimodels.BanUsersReq) errs.AdminErrorCode {
-	storage := storages.NewBanUserStorage()
+	userStorage := storages.NewUserStorage()
+	banUsers := &juggleimsdk.BanUsers{
+		Items: []*juggleimsdk.BanUser{},
+	}
 	appkey := req.AppKey
 	for _, user := range req.Items {
-		storage.DelBanUser(appkey, user.UserId, "")
+		banUsers.Items = append(banUsers.Items, &juggleimsdk.BanUser{
+			UserId: user.UserId,
+		})
+		userStorage.UpdateStatus(appkey, user.UserId, models.UserStatus_Normal)
+	}
+	sdk := imsdk.GetImSdk(appkey)
+	if sdk != nil {
+		sdk.UnBanUsers(banUsers)
 	}
 	return errs.AdminErrorCode_Success
 }

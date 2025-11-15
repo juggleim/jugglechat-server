@@ -143,6 +143,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email` varchar(100) DEFAULT NULL,
   `login_account` varchar(50) DEFAULT NULL,
   `login_pass` varchar(50) DEFAULT NULL,
+  `status` tinyint default '0',
   `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
   `app_key` varchar(20) DEFAULT NULL,
   `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
@@ -357,4 +358,4 @@ CREATE TABLE IF NOT EXISTS `banusers` (
   UNIQUE KEY `uniq_appkey_userid` (`app_key`,`user_id`,`scope_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_version','20250201');
+INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_version','20251115');

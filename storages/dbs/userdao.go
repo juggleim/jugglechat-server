@@ -22,6 +22,7 @@ type UserDao struct {
 	Email        string    `gorm:"email"`
 	LoginAccount string    `gorm:"login_account"`
 	LoginPass    string    `gorm:"login_pass"`
+	Status       int       `gorm:"status"`
 	CreatedTime  time.Time `gorm:"created_time"`
 	UpdatedTime  time.Time `gorm:"updated_time"`
 	AppKey       string    `gorm:"app_key"`
@@ -51,6 +52,7 @@ func (user UserDao) FindByUserId(appkey, userId string) (*models.User, error) {
 		Email:        item.Email,
 		LoginAccount: item.LoginAccount,
 		LoginPass:    item.LoginPass,
+		Status:       item.Status,
 		CreatedTime:  item.CreatedTime,
 		UpdatedTime:  item.UpdatedTime,
 		AppKey:       item.AppKey,
@@ -71,6 +73,7 @@ func (user UserDao) FindByUserIds(appkey string, userIds []string) (map[string]*
 			UserType:     item.UserType,
 			Phone:        item.Phone,
 			Email:        item.Email,
+			Status:       item.Status,
 			CreatedTime:  item.CreatedTime,
 			UpdatedTime:  item.UpdatedTime,
 			AppKey:       item.AppKey,
@@ -98,6 +101,7 @@ func (user UserDao) SearchByKeyword(appkey string, userId, keyword string) ([]*m
 			Phone:        item.Phone,
 			Email:        item.Email,
 			LoginAccount: item.LoginAccount,
+			Status:       item.Status,
 			CreatedTime:  item.CreatedTime,
 			UpdatedTime:  item.UpdatedTime,
 			AppKey:       item.AppKey,
@@ -126,6 +130,7 @@ func (user UserDao) FindByPhone(appkey, phone string) (*models.User, error) {
 		Email:        item.Email,
 		LoginAccount: item.LoginAccount,
 		LoginPass:    item.LoginPass,
+		Status:       item.Status,
 		CreatedTime:  item.CreatedTime,
 		UpdatedTime:  item.UpdatedTime,
 		AppKey:       item.AppKey,
@@ -152,6 +157,7 @@ func (user UserDao) FindByEmail(appkey, email string) (*models.User, error) {
 		Email:        item.Email,
 		LoginAccount: item.LoginAccount,
 		LoginPass:    item.LoginPass,
+		Status:       item.Status,
 		CreatedTime:  item.CreatedTime,
 		UpdatedTime:  item.UpdatedTime,
 		AppKey:       item.AppKey,
@@ -178,6 +184,7 @@ func (user UserDao) FindByAccount(appkey, account string) (*models.User, error) 
 		Email:        item.Email,
 		LoginAccount: item.LoginAccount,
 		LoginPass:    item.LoginPass,
+		Status:       item.Status,
 		CreatedTime:  item.CreatedTime,
 		UpdatedTime:  item.UpdatedTime,
 		AppKey:       item.AppKey,
@@ -259,6 +266,10 @@ func (user UserDao) UpdateEmail(appkey, userId, email string) error {
 	return dbcommons.GetDb().Model(&UserDao{}).Where("app_key=? and user_id=?", appkey, userId).Update("email", email).Error
 }
 
+func (user UserDao) UpdateStatus(appkey, userId string, status models.UserStatus) error {
+	return dbcommons.GetDb().Model(&UserDao{}).Where("app_key=? and user_id=?", appkey, userId).Update("status", status).Error
+}
+
 func (user UserDao) Count(appkey string) int {
 	var count int
 	err := dbcommons.GetDb().Model(&UserDao{}).Where("app_key=?", appkey).Count(&count).Error
@@ -311,6 +322,7 @@ func (user UserDao) QryUsers(appkey, name string, startId, limit int64, isPositi
 				Email:        item.Email,
 				LoginAccount: item.LoginAccount,
 				LoginPass:    item.LoginPass,
+				Status:       item.Status,
 				CreatedTime:  item.CreatedTime,
 				UpdatedTime:  item.UpdatedTime,
 				AppKey:       item.AppKey,

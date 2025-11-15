@@ -2,6 +2,13 @@ package models
 
 import "time"
 
+type UserStatus int32
+
+const (
+	UserStatus_Normal UserStatus = 0
+	UserStatus_Ban    UserStatus = 1
+)
+
 type User struct {
 	ID           int64
 	UserId       string
@@ -33,6 +40,7 @@ type IUserStorage interface {
 	UpdatePass(appkey, userId, pass string) error
 	UpdatePhone(appkey, userId, phone string) error
 	UpdateEmail(appkey, userId, email string) error
+	UpdateStatus(appkey, userId string, status UserStatus) error
 	Count(appkey string) int
 	CountByTime(appkey string, start, end int64) int64
 	QryUsers(appkey, name string, startId, limit int64, isPositiveOrder bool) ([]*User, error)
