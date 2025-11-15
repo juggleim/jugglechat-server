@@ -356,5 +356,3 @@ CREATE TABLE IF NOT EXISTS `banusers` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_appkey_userid` (`app_key`,`user_id`,`scope_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-INSERT INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_version','20250201');
