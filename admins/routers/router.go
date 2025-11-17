@@ -31,6 +31,7 @@ var proxyPathMap map[string]string
 
 func init() {
 	proxyPathMap = map[string]string{}
+	proxyPathMap["/imapiagent"] = http.MethodPost
 	proxyPathMap["/apps/active"] = http.MethodPost
 	proxyPathMap["/apps/create"] = http.MethodPost
 	proxyPathMap["/apps/list"] = http.MethodGet
