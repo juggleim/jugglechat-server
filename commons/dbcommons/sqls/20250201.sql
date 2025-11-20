@@ -356,3 +356,13 @@ CREATE TABLE IF NOT EXISTS `banusers` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_appkey_userid` (`app_key`,`user_id`,`scope_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `blocks` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` varchar(32) DEFAULT NULL,
+  `block_user_id` varchar(32) DEFAULT NULL,
+  `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `app_key` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_appkey_userid` (`app_key`,`user_id`,`block_user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
