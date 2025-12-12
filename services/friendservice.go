@@ -150,12 +150,21 @@ func DelFriends(ctx context.Context, req *apimodels.FriendIdsReq) errs.IMErrorCo
 	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewFriendRelStorage()
 	storage.BatchDelete(appkey, userId, req.FriendIds)
+	for _, friendId := range req.FriendIds {
+		storage.BatchDelete(appkey, friendId, []string{userId})
+	}
 	// sync to imserver
 	if sdk := imsdk.GetImSdk(appkey); sdk != nil {
 		sdk.DelFriends(juggleimsdk.FriendIds{
 			UserId:    userId,
 			FriendIds: req.FriendIds,
 		})
+		for _, friendId := range req.FriendIds {
+			sdk.DelFriends(juggleimsdk.FriendIds{
+				UserId:    friendId,
+				FriendIds: []string{userId},
+			})
+		}
 	}
 	return errs.IMErrorCode_SUCCESS
 }
