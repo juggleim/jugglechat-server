@@ -126,6 +126,7 @@ func GetUserSettings(ctx context.Context, userId string) *apimodels.UserSettings
 	storage := storages.NewUserExtStorage()
 	exts, err := storage.QryExtFields(appkey, userId)
 	if err == nil {
+		settings.FriendVerifyType = apimodels.FriendVerifyType_NeedFriendVerify
 		for _, ext := range exts {
 			if ext.ItemKey == apimodels.UserExtKey_Language {
 				settings.Language = ext.ItemValue
