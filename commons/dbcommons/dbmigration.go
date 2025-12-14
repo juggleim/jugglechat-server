@@ -14,8 +14,7 @@ import (
 var sqlFs embed.FS
 
 const (
-	JChatDbVersionKey       = "jchatdb_version"
-	initVersion       int64 = 20250201
+	JChatDbVersionKey = "jchatdb_version"
 )
 
 type CountResult struct {
@@ -27,18 +26,10 @@ func Upgrade() {
 	var currVersion int64 = 0
 	dao := GlobalConfDao{}
 	conf, err := dao.FindByKey(JChatDbVersionKey)
-	if err == nil {
+	if err == nil && conf != nil {
 		ver, err := utils.String2Int64(conf.ConfValue)
 		if err == nil && ver > 0 {
 			currVersion = ver
-		}
-	} else {
-		err = dao.Create(GlobalConfDao{
-			ConfKey:   JChatDbVersionKey,
-			ConfValue: fmt.Sprintf("%d", initVersion),
-		})
-		if err == nil {
-			currVersion = initVersion
 		}
 	}
 	fmt.Println("[JChatDbMigration]current version:", currVersion)

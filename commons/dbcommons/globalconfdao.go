@@ -30,9 +30,9 @@ func (conf GlobalConfDao) FindByKey(key string) (*GlobalConfDao, error) {
 	var item GlobalConfDao
 	err := GetDb().Where("conf_key=?", key).Take(&item).Error
 	if err == gorm.ErrRecordNotFound {
-		return nil, err
+		return nil, nil
 	}
-	return &item, nil
+	return &item, err
 }
 
 func (conf GlobalConfDao) UpdateValue(key, val string) error {
