@@ -34,7 +34,7 @@ type IUserStorage interface {
 	FindByAccount(appkey, account string) (*User, error)
 	FindByUserId(appkey, userId string) (*User, error)
 	FindByUserIds(appkey string, userIds []string) (map[string]*User, error)
-	SearchByKeyword(appkey string, userId, keyword string) ([]*User, error)
+	SearchByKeyword(appkey string, userId, keyword string, isAmbiguous bool) ([]*User, error)
 	Update(appkey, userId, nickname, userPortrait string) error
 	UpdateAccount(appkey, userId, account string) error
 	UpdatePass(appkey, userId, pass string) error

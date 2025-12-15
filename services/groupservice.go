@@ -263,6 +263,11 @@ func SearchGroupMembers(ctx context.Context, req *apimodels.SearchGroupMembersRe
 
 func CreateGroup(ctx context.Context, req *apimodels.GroupMembersReq) (errs.IMErrorCode, *apimodels.GroupInfo) {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	grpName := req.GroupName
+	//check grpName
+	if ok, _ := CheckSensitiveText(ctx, grpName); !ok {
+		return errs.IMErrorCode_APP_Sensitive, nil
+	}
 	grpId := utils.GenerateUUIDShort11()
 	if req.GroupId != "" {
 		grpId = req.GroupId
@@ -323,6 +328,9 @@ func CreateGroup(ctx context.Context, req *apimodels.GroupMembersReq) (errs.IMEr
 }
 
 func UpdateGroup(ctx context.Context, req *apimodels.GroupInfo) errs.IMErrorCode {
+	if ok, _ := CheckSensitiveText(ctx, req.GroupName); !ok {
+		return errs.IMErrorCode_APP_Sensitive
+	}
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	requestId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewGroupStorage()

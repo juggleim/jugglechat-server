@@ -28,6 +28,7 @@ var (
 	IMErrorCode_APP_LOGIN_ERR_PASS      IMErrorCode = 17013
 	IMErrorCode_APP_PHONE_EXISTED       IMErrorCode = 17014
 	IMErrorCode_APP_EMAIL_EXIST         IMErrorCode = 17015
+	IMErrorCode_APP_Sensitive           IMErrorCode = 17016
 
 	//friends
 	IMErrorCode_APP_FRIEND_DEFAULT         IMErrorCode = 17100

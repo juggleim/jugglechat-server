@@ -72,3 +72,7 @@ func NewBanUserStorage() models.IBanUserStorage {
 func NewBlockUserStorage() models.IBlockUserStorage {
 	return &dbs.BlockDao{}
 }
+
+func NewSensitiveWordStorage() models.ISensitiveWordStorage {
+	return &dbs.SensitiveWordDao{}
+}

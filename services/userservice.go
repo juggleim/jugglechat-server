@@ -184,7 +184,7 @@ func SearchByKeyword(ctx context.Context, keyword string) (errs.IMErrorCode, *ap
 		Items: []*apimodels.UserObj{},
 	}
 	storage := storages.NewUserStorage()
-	users, err := storage.SearchByKeyword(appkey, requestId, keyword)
+	users, err := storage.SearchByKeyword(appkey, requestId, keyword, false)
 	if err == nil {
 		targetUIds := []string{}
 		for _, user := range users {
@@ -216,6 +216,9 @@ func SetUserAccount(ctx context.Context, req *apimodels.SetUserAccountReq) errs.
 }
 
 func UpdateUser(ctx context.Context, req *apimodels.UserObj) errs.IMErrorCode {
+	if ok, _ := CheckSensitiveText(ctx, req.Nickname); !ok {
+		return errs.IMErrorCode_APP_Sensitive
+	}
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	storage := storages.NewUserStorage()
 	storage.Update(appkey, req.UserId, req.Nickname, req.Avatar)
