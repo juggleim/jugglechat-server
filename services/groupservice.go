@@ -320,6 +320,15 @@ func CreateGroup(ctx context.Context, req *apimodels.GroupMembersReq) (errs.IMEr
 		Type:     apimodels.GroupNotifyType_AddMember,
 	}
 	SendGrpNotify(ctx, grpId, notify)
+	// set group confs
+	grpExtStorage := storages.NewGroupExtStorage()
+	grpExtStorage.Upsert(models.GroupExt{
+		GroupId:   grpId,
+		ItemKey:   apimodels.AttItemKey_AddMemberRight,
+		ItemValue: "1",
+		ItemType:  apimodels.AttItemType_Setting,
+		AppKey:    appkey,
+	})
 	return errs.IMErrorCode_SUCCESS, &apimodels.GroupInfo{
 		GroupId:       grpId,
 		GroupName:     req.GroupName,
