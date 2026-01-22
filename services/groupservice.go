@@ -325,7 +325,7 @@ func CreateGroup(ctx context.Context, req *apimodels.GroupMembersReq) (errs.IMEr
 	grpExtStorage.Upsert(models.GroupExt{
 		GroupId:   grpId,
 		ItemKey:   apimodels.AttItemKey_AddMemberRight,
-		ItemValue: "1",
+		ItemValue: "3",
 		ItemType:  apimodels.AttItemType_Setting,
 		AppKey:    appkey,
 	})
