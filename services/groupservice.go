@@ -758,7 +758,6 @@ func SetGroupHisMsgVisible(ctx context.Context, req *apimodels.SetGroupHisMsgVis
 	} else {
 		hideGrpMsg = "1"
 	}
-	fmt.Println(hideGrpMsg)
 	storage := storages.NewGroupExtStorage()
 	storage.Upsert(models.GroupExt{
 		GroupId:   req.GroupId,
