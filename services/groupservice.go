@@ -39,8 +39,9 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 		MemberCount:   int32(memberCount),
 		Owner:         &apimodels.GroupMemberInfo{},
 		GroupManagement: &apimodels.GroupManagement{
-			GroupMute:     grpInfo.IsMute,
-			MaxAdminCount: 10,
+			GroupMute:          grpInfo.IsMute,
+			MaxAdminCount:      10,
+			GroupHisMsgVisible: 1,
 
 			GroupEditMsgRight:    utils.IntPtr(7),
 			GroupAddMemberRight:  utils.IntPtr(7),
