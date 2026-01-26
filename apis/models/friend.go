@@ -42,3 +42,8 @@ type SearchFriendsReq struct {
 	Offset string `json:"offset"`
 	Limit  int64  `json:"limit"`
 }
+
+type SetFriendDisplayNameReq struct {
+	FriendId          string `json:"friend_id"`
+	FriendDisplayName string `json:"friend_display_name"`
+}

@@ -24,6 +24,12 @@ type User struct {
 	UpdatedTime  time.Time
 	CreatedTime  time.Time
 	AppKey       string
+	FriendInfo   *FriendInfo
+}
+
+type FriendInfo struct {
+	IsFriend    bool
+	DisplayName string
 }
 
 type IUserStorage interface {

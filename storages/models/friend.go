@@ -1,11 +1,12 @@
 package models
 
 type FriendRel struct {
-	ID       int64
-	AppKey   string
-	UserId   string
-	FriendId string
-	OrderTag string
+	ID          int64
+	AppKey      string
+	UserId      string
+	FriendId    string
+	OrderTag    string
+	DisplayName string
 }
 
 type IFriendRelStorage interface {
@@ -17,6 +18,7 @@ type IFriendRelStorage interface {
 	BatchDelete(appkey, userId string, friendIds []string) error
 	QueryFriendRelsByFriendIds(appkey, userId string, friendIds []string) ([]*FriendRel, error)
 	UpdateOrderTag(appkey, userId, friendId string, orderTag string) error
+	UpdateDisplayName(appkey, userId, friendId string, displayName string) error
 }
 
 type FriendApplicationStatus int

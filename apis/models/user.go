@@ -15,18 +15,24 @@ const (
 )
 
 type UserObj struct {
-	UserId   string        `json:"user_id"`
-	Nickname string        `json:"nickname"`
-	Avatar   string        `json:"avatar"`
-	Pinyin   string        `json:"pinyin"`
-	UserType int           `json:"user_type"`
-	Phone    string        `json:"phone"`
-	Email    string        `json:"email"`
-	Account  string        `json:"account"`
-	Status   int32         `json:"status"`
-	IsFriend bool          `json:"is_friend"`
-	IsBlock  bool          `json:"is_block"`
-	Settings *UserSettings `json:"settings"`
+	UserId     string        `json:"user_id"`
+	Nickname   string        `json:"nickname"`
+	Avatar     string        `json:"avatar"`
+	Pinyin     string        `json:"pinyin"`
+	UserType   int           `json:"user_type"`
+	Phone      string        `json:"phone"`
+	Email      string        `json:"email"`
+	Account    string        `json:"account"`
+	Status     int32         `json:"status"`
+	IsFriend   bool          `json:"is_friend"`
+	FriendInfo *FriendInfo   `json:"friend_info"`
+	IsBlock    bool          `json:"is_block"`
+	Settings   *UserSettings `json:"settings"`
+}
+
+type FriendInfo struct {
+	IsFriend    bool   `json:"is_friend"`
+	DisplayName string `json:"display_name"`
 }
 
 type UserSettings struct {
