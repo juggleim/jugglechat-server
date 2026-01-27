@@ -64,12 +64,18 @@ func QryFriendsWithPage(ctx context.Context, page, size int64, orderTag string) 
 	}
 	if err == nil {
 		for _, user := range users {
+			friendInfo := &apimodels.FriendInfo{}
+			if user.FriendInfo != nil {
+				friendInfo.IsFriend = user.FriendInfo.IsFriend
+				friendInfo.DisplayName = user.FriendInfo.DisplayName
+			}
 			ret.Items = append(ret.Items, &apimodels.UserObj{
-				UserId:   user.UserId,
-				Pinyin:   user.Pinyin,
-				Nickname: user.Nickname,
-				Avatar:   user.UserPortrait,
-				UserType: user.UserType,
+				UserId:     user.UserId,
+				Pinyin:     user.Pinyin,
+				Nickname:   user.Nickname,
+				Avatar:     user.UserPortrait,
+				UserType:   user.UserType,
+				FriendInfo: friendInfo,
 			})
 		}
 	}
