@@ -75,11 +75,12 @@ func QryFriendsWithPage(ctx *gin.Context) {
 	}
 	for _, friend := range friends.Items {
 		ret.Items = append(ret.Items, &models.UserObj{
-			UserId:   friend.UserId,
-			Nickname: friend.Nickname,
-			Avatar:   friend.Avatar,
-			Pinyin:   friend.Pinyin,
-			IsFriend: true,
+			UserId:     friend.UserId,
+			Nickname:   friend.Nickname,
+			Avatar:     friend.Avatar,
+			Pinyin:     friend.Pinyin,
+			IsFriend:   true,
+			FriendInfo: friend.FriendInfo,
 		})
 	}
 	responses.SuccessHttpResp(ctx, ret)
