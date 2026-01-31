@@ -150,11 +150,12 @@ func (rel FriendRelDao) QueryFriendRelsByFriendIds(appkey, userId string, friend
 	ret := []*models.FriendRel{}
 	for _, rel := range items {
 		ret = append(ret, &models.FriendRel{
-			ID:       rel.ID,
-			AppKey:   rel.AppKey,
-			UserId:   rel.UserId,
-			FriendId: rel.FriendId,
-			OrderTag: rel.OrderTag,
+			ID:          rel.ID,
+			AppKey:      rel.AppKey,
+			UserId:      rel.UserId,
+			FriendId:    rel.FriendId,
+			OrderTag:    rel.OrderTag,
+			DisplayName: rel.DisplayName,
 		})
 	}
 	return ret, nil

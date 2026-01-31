@@ -102,51 +102,66 @@ type GroupMemberWithUser struct {
 	GroupMemberDao
 	Nickname     string `gorm:"nickname"`
 	UserPortrait string `gorm:"user_portrait"`
+
+	FriendDisplayName string `gorm:"friend_display_name"`
+	FriendId          string `gorm:"friend_id"`
 }
 
-func (member GroupMemberDao) QueryMembers(appkey, groupId string, startId, limit int64) ([]*models.GroupMember, error) {
-	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id where m.app_key=? and m.group_id=? and m.id>?", member.TableName(), UserDao{}.TableName())
+func (member GroupMemberDao) QueryMembers(appkey, userId, groupId string, startId, limit int64) ([]*models.GroupMember, error) {
+	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type,f.friend_id,f.display_name as friend_display_name from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id left join %s as f on f.user_id=? and f.friend_id=m.member_id where m.app_key=? and m.group_id=? and m.id>?", member.TableName(), UserDao{}.TableName(), FriendRelDao{}.TableName())
 	var items []*GroupMemberWithUser
-	err := dbcommons.GetDb().Raw(sql, appkey, groupId, startId).Order("m.id asc").Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, userId, appkey, groupId, startId).Order("m.id asc").Limit(limit).Find(&items).Error
 	ret := []*models.GroupMember{}
 	for _, item := range items {
+		friendInfo := &models.FriendInfo{}
+		if item.FriendId != "" {
+			friendInfo.IsFriend = true
+			friendInfo.DisplayName = item.FriendDisplayName
+		}
 		ret = append(ret, &models.GroupMember{
-			ID:             item.ID,
-			GroupId:        item.GroupId,
-			MemberId:       item.MemberId,
-			MemberType:     item.MemberType,
-			CreatedTime:    item.CreatedTime,
-			AppKey:         item.AppKey,
-			IsMute:         item.IsMute,
-			IsAllow:        item.IsAllow,
-			MuteEndAt:      item.MuteEndAt,
-			GrpDisplayName: item.GrpDisplayName,
-			Nickname:       item.Nickname,
-			UserPortrait:   item.UserPortrait,
+			ID:               item.ID,
+			GroupId:          item.GroupId,
+			MemberId:         item.MemberId,
+			MemberType:       item.MemberType,
+			CreatedTime:      item.CreatedTime,
+			AppKey:           item.AppKey,
+			IsMute:           item.IsMute,
+			IsAllow:          item.IsAllow,
+			MuteEndAt:        item.MuteEndAt,
+			GrpDisplayName:   item.GrpDisplayName,
+			Nickname:         item.Nickname,
+			UserPortrait:     item.UserPortrait,
+			MemberFriendInfo: friendInfo,
 		})
 	}
 	return ret, err
 }
 
-func (member GroupMemberDao) SearchMembersByName(appkey, groupId, nickname string, startId, limit int64) ([]*models.GroupMember, error) {
-	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id where m.app_key=? and m.group_id=? and m.id>? and u.nickname like ?", member.TableName(), UserDao{}.TableName())
+func (member GroupMemberDao) SearchMembersByName(appkey, userId, groupId, nickname string, startId, limit int64) ([]*models.GroupMember, error) {
+	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id left join %s as f on f.user_id=? and f.friend_id=m.member_id where m.app_key=? and m.group_id=? and m.id>? and u.nickname like ?", member.TableName(), UserDao{}.TableName(), FriendRelDao{}.TableName())
 	var items []*GroupMemberWithUser
-	err := dbcommons.GetDb().Raw(sql, appkey, groupId, startId, "%"+nickname+"%").Order("m.id asc").Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, userId, appkey, groupId, startId, "%"+nickname+"%").Order("m.id asc").Limit(limit).Find(&items).Error
 	ret := []*models.GroupMember{}
 	for _, item := range items {
+		friendInfo := &models.FriendInfo{}
+		if item.FriendId != "" {
+			friendInfo.IsFriend = true
+			friendInfo.DisplayName = item.FriendDisplayName
+		}
 		ret = append(ret, &models.GroupMember{
-			ID:             item.ID,
-			GroupId:        item.GroupId,
-			MemberId:       item.MemberId,
-			MemberType:     item.MemberType,
-			CreatedTime:    item.CreatedTime,
-			AppKey:         item.AppKey,
-			IsMute:         item.IsMute,
-			IsAllow:        item.IsAllow,
-			MuteEndAt:      item.MuteEndAt,
-			GrpDisplayName: item.GrpDisplayName,
-			Nickname:       item.Nickname,
-			UserPortrait:   item.UserPortrait,
+			ID:               item.ID,
+			GroupId:          item.GroupId,
+			MemberId:         item.MemberId,
+			MemberType:       item.MemberType,
+			CreatedTime:      item.CreatedTime,
+			AppKey:           item.AppKey,
+			IsMute:           item.IsMute,
+			IsAllow:          item.IsAllow,
+			MuteEndAt:        item.MuteEndAt,
+			GrpDisplayName:   item.GrpDisplayName,
+			Nickname:         item.Nickname,
+			UserPortrait:     item.UserPortrait,
+			MemberFriendInfo: friendInfo,
 		})
 	}
 	return ret, err

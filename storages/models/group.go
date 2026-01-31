@@ -103,6 +103,8 @@ type GroupMember struct {
 	IsAllow        int
 	MuteEndAt      int64
 	GrpDisplayName string
+
+	MemberFriendInfo *FriendInfo
 }
 
 type IGroupMemberStorage interface {
@@ -110,8 +112,8 @@ type IGroupMemberStorage interface {
 	Find(appkey, groupId, memberId string) (*GroupMember, error)
 	FindByMemberIds(appkey, groupId string, memberIds []string) ([]*GroupMember, error)
 	BatchCreate(items []GroupMember) error
-	QueryMembers(appkey, groupId string, startId, limit int64) ([]*GroupMember, error)
-	SearchMembersByName(appkey, groupId, nickname string, startId, limit int64) ([]*GroupMember, error)
+	QueryMembers(appkey, userId, groupId string, startId, limit int64) ([]*GroupMember, error)
+	SearchMembersByName(appkey, userId, groupId, nickname string, startId, limit int64) ([]*GroupMember, error)
 	QueryGroupsByMemberId(appkey, memberId string, startId, limit int64) ([]*GroupMember, error)
 	BatchDelete(appkey, groupId string, memberIds []string) error
 	DeleteByGroupId(appkey, groupId string) error

@@ -125,7 +125,7 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 		}
 	}
 	//top members
-	topMembers, err := grpMemberStorage.QueryMembers(appkey, groupId, 0, 20)
+	topMembers, err := grpMemberStorage.QueryMembers(appkey, requestId, groupId, 0, 20)
 	if err == nil && len(topMembers) > 0 {
 		for _, member := range topMembers {
 			role := apimodels.GrpMemberRole_GrpMember
@@ -230,6 +230,7 @@ func CheckGroupMembers(ctx context.Context, req *apimodels.CheckGroupMembersReq)
 }
 
 func SearchGroupMembers(ctx context.Context, req *apimodels.SearchGroupMembersReq) (errs.IMErrorCode, *apimodels.GroupMemberInfos) {
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	groupId := req.GroupId
 	var startId int64 = 0
@@ -247,7 +248,7 @@ func SearchGroupMembers(ctx context.Context, req *apimodels.SearchGroupMembersRe
 		Items: []*apimodels.GroupMemberInfo{},
 	}
 	storage := storages.NewGroupMemberStorage()
-	members, err := storage.SearchMembersByName(appkey, groupId, req.Key, startId, limit)
+	members, err := storage.SearchMembersByName(appkey, userId, groupId, req.Key, startId, limit)
 	if err == nil {
 		for _, member := range members {
 			ret.Offset, _ = utils.EncodeInt(member.ID)
@@ -634,6 +635,7 @@ func DelGrpMembers(ctx context.Context, req *apimodels.GroupMembersReq) errs.IME
 }
 
 func QueryGrpMembers(ctx context.Context, groupId string, limit int64, offset string) (errs.IMErrorCode, *apimodels.GroupMemberInfos) {
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewGroupMemberStorage()
 	var startId int64 = 0
 	if offset != "" {
@@ -645,7 +647,7 @@ func QueryGrpMembers(ctx context.Context, groupId string, limit int64, offset st
 	ret := &apimodels.GroupMemberInfos{
 		Items: []*apimodels.GroupMemberInfo{},
 	}
-	members, err := storage.QueryMembers(ctxs.GetAppKeyFromCtx(ctx), groupId, startId, limit)
+	members, err := storage.QueryMembers(ctxs.GetAppKeyFromCtx(ctx), userId, groupId, startId, limit)
 	if err == nil {
 		for _, member := range members {
 			ret.Offset, _ = utils.EncodeInt(member.ID)
