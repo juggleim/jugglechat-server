@@ -141,6 +141,7 @@ type GroupMemberInfo struct {
 	MemberType int           `json:"member_type"`
 	Role       GrpMemberRole `json:"role"`
 	IsMute     int           `json:"is_mute"`
+	FriendInfo *FriendInfo   `json:"friend_info"`
 }
 
 type GroupOwnerChgReq struct {

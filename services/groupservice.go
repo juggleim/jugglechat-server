@@ -134,6 +134,13 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 			} else if _, exist := administrators[member.MemberId]; exist {
 				role = apimodels.GrpMemberRole_GrpAdmin
 			}
+			friendInfo := &apimodels.FriendInfo{
+				IsFriend: false,
+			}
+			if member.MemberFriendInfo != nil {
+				friendInfo.IsFriend = member.MemberFriendInfo.IsFriend
+				friendInfo.DisplayName = member.MemberFriendInfo.DisplayName
+			}
 			ret.Members = append(ret.Members, &apimodels.GroupMemberInfo{
 				UserId:     member.MemberId,
 				Role:       role,
@@ -141,6 +148,8 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 				Avatar:     member.UserPortrait,
 				MemberType: member.MemberType,
 				IsMute:     member.IsMute,
+
+				FriendInfo: friendInfo,
 			})
 			ret.MemberOffset, _ = utils.EncodeInt(member.ID)
 		}
@@ -251,12 +260,18 @@ func SearchGroupMembers(ctx context.Context, req *apimodels.SearchGroupMembersRe
 	members, err := storage.SearchMembersByName(appkey, userId, groupId, req.Key, startId, limit)
 	if err == nil {
 		for _, member := range members {
+			friendInfo := &apimodels.FriendInfo{}
+			if member.MemberFriendInfo != nil {
+				friendInfo.IsFriend = member.MemberFriendInfo.IsFriend
+				friendInfo.DisplayName = member.MemberFriendInfo.DisplayName
+			}
 			ret.Offset, _ = utils.EncodeInt(member.ID)
 			ret.Items = append(ret.Items, &apimodels.GroupMemberInfo{
 				UserId:     member.MemberId,
 				MemberType: member.MemberType,
 				Nickname:   member.Nickname,
 				Avatar:     member.UserPortrait,
+				FriendInfo: friendInfo,
 			})
 		}
 	}
@@ -650,12 +665,18 @@ func QueryGrpMembers(ctx context.Context, groupId string, limit int64, offset st
 	members, err := storage.QueryMembers(ctxs.GetAppKeyFromCtx(ctx), userId, groupId, startId, limit)
 	if err == nil {
 		for _, member := range members {
+			friendInfo := &apimodels.FriendInfo{}
+			if member.MemberFriendInfo != nil {
+				friendInfo.IsFriend = member.MemberFriendInfo.IsFriend
+				friendInfo.DisplayName = member.MemberFriendInfo.DisplayName
+			}
 			ret.Offset, _ = utils.EncodeInt(member.ID)
 			ret.Items = append(ret.Items, &apimodels.GroupMemberInfo{
 				UserId:     member.MemberId,
 				MemberType: member.MemberType,
 				Nickname:   member.Nickname,
 				Avatar:     member.UserPortrait,
+				FriendInfo: friendInfo,
 			})
 		}
 	}

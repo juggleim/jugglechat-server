@@ -226,11 +226,19 @@ func QryGrpMembers(ctx *gin.Context) {
 		Items: []*models.GroupMember{},
 	}
 	for _, member := range members.Items {
+		friendInfo := &models.FriendInfo{
+			IsFriend: false,
+		}
+		if member.FriendInfo != nil {
+			friendInfo.IsFriend = member.FriendInfo.IsFriend
+			friendInfo.DisplayName = member.FriendInfo.DisplayName
+		}
 		ret.Items = append(ret.Items, &models.GroupMember{
 			UserObj: models.UserObj{
-				UserId:   member.UserId,
-				Nickname: member.Nickname,
-				Avatar:   member.Avatar,
+				UserId:     member.UserId,
+				Nickname:   member.Nickname,
+				Avatar:     member.Avatar,
+				FriendInfo: friendInfo,
 			},
 		})
 	}
