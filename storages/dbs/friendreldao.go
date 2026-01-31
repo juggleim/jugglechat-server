@@ -113,9 +113,9 @@ type FriendRelWithUser struct {
 }
 
 func (rel FriendRelDao) SearchFriendsByName(appkey, userId string, nickname string, startId, limit int64) ([]*models.User, error) {
-	sql := fmt.Sprintf("select r.*,u.nickname,u.user_portrait,u.user_type,u.pinyin from %s as r left join %s as u on r.app_key=u.app_key and r.friend_id=u.user_id where r.app_key=? and r.user_id=? and r.id>? and u.nickname like ?", rel.TableName(), UserDao{}.TableName())
+	sql := fmt.Sprintf("select r.*,u.nickname,u.user_portrait,u.user_type,u.pinyin from %s as r left join %s as u on r.app_key=u.app_key and r.friend_id=u.user_id where r.app_key=? and r.user_id=? and r.id>? and (u.nickname like ? or r.display_name like ? )", rel.TableName(), UserDao{}.TableName())
 	var items []*FriendRelWithUser
-	err := dbcommons.GetDb().Raw(sql, appkey, userId, startId, "%"+nickname+"%").Order("r.id asc").Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, appkey, userId, startId, "%"+nickname+"%", "%"+nickname+"%").Order("r.id asc").Limit(limit).Find(&items).Error
 	ret := []*models.User{}
 	if err == nil {
 		for _, item := range items {
