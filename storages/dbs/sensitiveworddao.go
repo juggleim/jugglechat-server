@@ -48,7 +48,7 @@ func (word SensitiveWordDao) DeleteWords(appkey string, words ...string) error {
 
 func (word SensitiveWordDao) QrySensitiveWords(appkey string, limit, startId int64) ([]*models.SensitiveWord, error) {
 	var items []*SensitiveWordDao
-	err := dbcommons.GetDb().Where("app_key=? and id>?", appkey, startId).Order("id asc").Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Where("app_key=? and id>?", appkey, startId).Order("id asc").Limit(int(limit)).Find(&items).Error
 	ret := []*models.SensitiveWord{}
 	for _, item := range items {
 		ret = append(ret, &models.SensitiveWord{
@@ -63,6 +63,7 @@ func (word SensitiveWordDao) QrySensitiveWords(appkey string, limit, startId int
 
 func (word SensitiveWordDao) QrySensitiveWordsWithPage(appkey string, page, size int64, str string, wordType int32) (words []*models.SensitiveWord, total int, err error) {
 	var items []*SensitiveWordDao
+	var totalCount int64
 	db := dbcommons.GetDb().Table(word.TableName()).Where("app_key=?", appkey)
 	if str != "" {
 		db = db.Where("word like ?", fmt.Sprintf("%%%s%%", str))
@@ -70,12 +71,12 @@ func (word SensitiveWordDao) QrySensitiveWordsWithPage(appkey string, page, size
 	if wordType != 0 {
 		db = db.Where("word_type=?", wordType)
 	}
-	err = db.Count(&total).Error
+	err = db.Count(&totalCount).Error
 	if err != nil {
 		return nil, 0, err
 	}
 
-	err = db.Order("id asc").Offset((page - 1) * size).Limit(size).Find(&items).Error
+	err = db.Order("id asc").Offset(int((page - 1) * size)).Limit(int(size)).Find(&items).Error
 	if err != nil {
 		return nil, 0, nil
 	}
@@ -90,14 +91,14 @@ func (word SensitiveWordDao) QrySensitiveWordsWithPage(appkey string, page, size
 		})
 	}
 
-	return ret, total, err
+	return ret, int(totalCount), err
 }
 
 func (word SensitiveWordDao) Total(appkey string) int {
-	var count int
+	var count int64
 	err := dbcommons.GetDb().Table(word.TableName()).Where("app_key=?", appkey).Count(&count).Error
 	if err != nil {
 		count = 0
 	}
-	return count
+	return int(count)
 }

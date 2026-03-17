@@ -56,7 +56,7 @@ func (reaction PostReactionDao) QryReactions(appkey, busId string, busType model
 	}
 	conditionBuf.WriteString(" and id<?")
 	params = append(params, startId)
-	err := dbcommons.GetDb().Where(conditionBuf.String(), params...).Order(orderStr).Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Where(conditionBuf.String(), params...).Order(orderStr).Limit(int(limit)).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}

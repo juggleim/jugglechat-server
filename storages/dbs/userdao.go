@@ -1,11 +1,12 @@
 package dbs
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 	utils "github.com/juggleim/jugglechat-server/commons/tools"
 	"github.com/juggleim/jugglechat-server/storages/models"
@@ -36,7 +37,7 @@ func (user UserDao) FindByUserId(appkey, userId string) (*models.User, error) {
 	var item UserDao
 	err := dbcommons.GetDb().Where("app_key=? and user_id=?", appkey, userId).Take(&item).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -119,7 +120,7 @@ func (user UserDao) FindByPhone(appkey, phone string) (*models.User, error) {
 	var item UserDao
 	err := dbcommons.GetDb().Where("app_key=? and phone=?", appkey, phone).Take(&item).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -146,7 +147,7 @@ func (user UserDao) FindByEmail(appkey, email string) (*models.User, error) {
 	var item UserDao
 	err := dbcommons.GetDb().Where("app_key=? and email=?", appkey, email).Take(&item).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -173,7 +174,7 @@ func (user UserDao) FindByAccount(appkey, account string) (*models.User, error) 
 	var item UserDao
 	err := dbcommons.GetDb().Where("app_key=? and login_account=?", appkey, account).Take(&item).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -251,7 +252,7 @@ func (user UserDao) Update(appkey, userId, nickname, userPortrait string) error 
 	} else {
 		return fmt.Errorf("do nothing")
 	}
-	err := dbcommons.GetDb().Model(&UserDao{}).Where("app_key=? and user_id=?", appkey, userId).Update(upd).Error
+	err := dbcommons.GetDb().Model(&UserDao{}).Where("app_key=? and user_id=?", appkey, userId).Updates(upd).Error
 	return err
 }
 
@@ -276,12 +277,12 @@ func (user UserDao) UpdateStatus(appkey, userId string, status models.UserStatus
 }
 
 func (user UserDao) Count(appkey string) int {
-	var count int
+	var count int64
 	err := dbcommons.GetDb().Model(&UserDao{}).Where("app_key=?", appkey).Count(&count).Error
 	if err != nil {
 		return 0
 	}
-	return count
+	return int(count)
 }
 
 func (user UserDao) CountByTime(appkey string, start, end int64) int64 {
@@ -312,7 +313,7 @@ func (user UserDao) QryUsers(appkey, name string, startId, limit int64, isPositi
 		whereStr = whereStr + " and nickname like ?"
 		params = append(params, "%"+name+"%")
 	}
-	err := dbcommons.GetDb().Where(whereStr, params...).Order(orderBy).Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Where(whereStr, params...).Order(orderBy).Limit(int(limit)).Find(&items).Error
 	ret := []*models.User{}
 	if err == nil {
 		for _, item := range items {

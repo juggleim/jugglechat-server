@@ -64,7 +64,7 @@ func (feed PostFeedDao) QryPosts(appkey, userId string, startTime, limit int64, 
 		sql = sql + " and f.feed_time<?"
 		params = append(params, startTime)
 	}
-	err := dbcommons.GetDb().Raw(sql, params...).Order(orderStr).Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, params...).Order(orderStr).Limit(int(limit)).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}

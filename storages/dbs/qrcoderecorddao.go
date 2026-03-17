@@ -45,5 +45,5 @@ func (record QrCodeRecordDao) UpdateStatus(appkey, codeId string, status models.
 	upd := map[string]interface{}{}
 	upd["user_id"] = userId
 	upd["status"] = status
-	return dbcommons.GetDb().Model(&QrCodeRecordDao{}).Where("app_key=? and code_id=?", appkey, codeId).Update(upd).Error
+	return dbcommons.GetDb().Model(&QrCodeRecordDao{}).Where("app_key=? and code_id=?", appkey, codeId).Updates(upd).Error
 }

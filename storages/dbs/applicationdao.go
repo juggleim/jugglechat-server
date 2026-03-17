@@ -1,10 +1,11 @@
 package dbs
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/storages/models"
 )
@@ -37,7 +38,7 @@ func (app ApplicationDao) Update(item models.Application) error {
 	upd["app_desc"] = item.AppDesc
 	upd["app_url"] = item.AppUrl
 	upd["app_order"] = item.AppOrder
-	return dbcommons.GetDb().Model(&ApplicationDao{}).Where("app_key=? and app_id=?", item.AppKey, item.AppId).Update(upd).Error
+	return dbcommons.GetDb().Model(&ApplicationDao{}).Where("app_key=? and app_id=?", item.AppKey, item.AppId).Updates(upd).Error
 }
 
 func (app ApplicationDao) BatchDelete(appkey string, appIds []string) error {
@@ -48,7 +49,7 @@ func (app ApplicationDao) FindByAppId(appkey, appId string) (*models.Application
 	var item ApplicationDao
 	err := dbcommons.GetDb().Where("app_key=? and app_id=?", appkey, appId).Take(&item).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -72,7 +73,7 @@ func (app ApplicationDao) QryApplications(appkey string, limit int64) ([]*models
 	whereStr := "app_key=?"
 	params := []interface{}{appkey}
 	orderBy := "app_order desc"
-	err := dbcommons.GetDb().Where(whereStr, params...).Order(orderBy).Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Where(whereStr, params...).Order(orderBy).Limit(int(limit)).Find(&items).Error
 	ret := []*models.Application{}
 	if err == nil {
 		for _, item := range items {
@@ -95,7 +96,7 @@ func (app ApplicationDao) QryApplications(appkey string, limit int64) ([]*models
 
 func (app ApplicationDao) QryApplicationsByPage(appkey string, page, size int64) ([]*models.Application, error) {
 	var items []*ApplicationDao
-	err := dbcommons.GetDb().Where("app_key=?", appkey).Order("app_order asc").Offset((page - 1) * size).Limit(size).Find(&items).Error
+	err := dbcommons.GetDb().Where("app_key=?", appkey).Order("app_order asc").Offset(int((page - 1) * size)).Limit(int(size)).Find(&items).Error
 	ret := []*models.Application{}
 	if err == nil {
 		for _, item := range items {

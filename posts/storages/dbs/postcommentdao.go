@@ -100,7 +100,7 @@ func (comment PostCommentDao) UpdateComment(appkey, commentId string, text strin
 		return nil
 	}
 	upd["updated_time"] = time.Now()
-	err := dbcommons.GetDb().Model(&PostCommentDao{}).Where("app_key=? and comment_id=?", appkey, commentId).Update(upd).Error
+	err := dbcommons.GetDb().Model(&PostCommentDao{}).Where("app_key=? and comment_id=?", appkey, commentId).Updates(upd).Error
 	return err
 }
 
@@ -127,7 +127,7 @@ func (comment PostCommentDao) QryPostComments(appkey, postId string, startTime, 
 		conditionBuf.WriteString(" and created_time<?")
 		params = append(params, startTime)
 	}
-	err := dbcommons.GetDb().Where(conditionBuf.String(), params...).Order(orderStr).Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Where(conditionBuf.String(), params...).Order(orderStr).Limit(int(limit)).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}

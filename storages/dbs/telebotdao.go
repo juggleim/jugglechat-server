@@ -57,7 +57,7 @@ func (bot TeleBotDao) BatchDel(appkey, userId string, botIds []int64) error {
 
 func (bot TeleBotDao) QryTeleBots(appkey, userId string, startId, limit int64) ([]*models.TeleBot, error) {
 	var items []*TeleBotDao
-	err := dbcommons.GetDb().Where("app_key=? and user_id=? and id>?", appkey, userId, startId).Order("id asc").Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Where("app_key=? and user_id=? and id>?", appkey, userId, startId).Order("id asc").Limit(int(limit)).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}

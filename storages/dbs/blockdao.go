@@ -1,10 +1,11 @@
 package dbs
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/storages/models"
 )
@@ -43,7 +44,7 @@ func (block BlockDao) Find(appkey, userId, blockUserId string) (*models.BlockUse
 	var item BlockDao
 	err := dbcommons.GetDb().Where("app_key=? and user_id=? and block_user_id=?", appkey, userId, blockUserId).Take(&item).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -87,7 +88,7 @@ type BlockUserWithUser struct {
 func (block BlockDao) QryBlockUsers(appkey, userId string, limit, startId int64) ([]*models.BlockUser, error) {
 	var items []*BlockUserWithUser
 	sql := fmt.Sprintf("select b.*,u.nickname,u.user_portrait,u.user_type,u.pinyin from %s as b left join %s as u on b.app_key=u.app_key and b.block_user_id=u.user_id where b.app_key=? and b.user_id=? and b.id>?", block.TableName(), UserDao{}.TableName())
-	err := dbcommons.GetDb().Raw(sql, appkey, userId, startId).Order("b.id asc").Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, appkey, userId, startId).Order("b.id asc").Limit(int(limit)).Find(&items).Error
 	ret := []*models.BlockUser{}
 	if err == nil {
 		for _, item := range items {

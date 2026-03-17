@@ -6,10 +6,11 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/juggleim/jugglechat-server/commons/configures"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"gorm.io/gorm/schema"
 )
 
 var db *gorm.DB
@@ -20,45 +21,44 @@ func GetDb() *gorm.DB {
 func InitMysql() error {
 	var err error
 
-	db, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", //&interpolateParams=true
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		configures.Config.Mysql.User,
 		configures.Config.Mysql.Password,
 		configures.Config.Mysql.Address,
-		configures.Config.Mysql.DbName))
+		configures.Config.Mysql.DbName)
 
+	logMode := logger.Silent
+	if configures.Config.Mysql.Debug {
+		logMode = logger.Info
+	}
+
+	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+		NamingStrategy: schema.NamingStrategy{SingularTable: true},
+		Logger:         logger.Default.LogMode(logMode),
+	})
 	if err != nil {
 		log.Fatalf("connect mysql err: %v", err)
 		return err
 	}
 
-	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
-		return "" + defaultTableName
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatalf("get sql.DB err: %v", err)
+		return err
 	}
-
-	db.SingularTable(true)
-	db.LogMode(configures.Config.Mysql.Debug)
-	db.SetLogger(&dbLogger{})
-	/*
-		db.Callback().Create().Replace("gorm:update_time_stamp", updateTimeStampForCreateCallback)
-		db.Callback().Update().Replace("gorm:update_time_stamp", updateTimeStampForUpdateCallback)
-		db.Callback().Delete().Replace("gorm:delete", deleteCallback)
-	*/
-	db.DB().SetMaxIdleConns(20)
-	db.DB().SetMaxOpenConns(500)
-	db.DB().SetConnMaxLifetime(time.Second * 9) // mysql连接默认10s断开
+	sqlDB.SetMaxIdleConns(20)
+	sqlDB.SetMaxOpenConns(500)
+	sqlDB.SetConnMaxLifetime(time.Second * 9) // mysql连接默认10s断开
 	return nil
 }
 
 // CloseDB closes database connection (unnecessary)
 func CloseDB() {
-	defer db.Close()
-}
-
-type dbLogger struct {
-}
-
-func (l *dbLogger) Print(values ...interface{}) {
-	// log.Debugf("SQL:%v", values...)
+	sqlDB, err := db.DB()
+	if err != nil {
+		return
+	}
+	sqlDB.Close()
 }
 
 func Create(t interface{}) error {
@@ -77,13 +77,13 @@ func TxCreate(tx *gorm.DB, t interface{}) error {
 
 func UpdModelMapByConds(m interface{}, conds []*Condition, data map[string]interface{}) (int64, error) {
 	where, params := GetWhere(conds)
-	save := db.Model(m).Where(where, params...).Update(data)
+	save := db.Model(m).Where(where, params...).Updates(data)
 	return save.RowsAffected, save.Error
 }
 
 func TxUpdModelMapByConds(tx *gorm.DB, m interface{}, conds []*Condition, data map[string]interface{}) (int64, error) {
 	where, params := GetWhere(conds)
-	save := tx.Model(m).Where(where, params...).Update(data)
+	save := tx.Model(m).Where(where, params...).Updates(data)
 	return save.RowsAffected, save.Error
 }
 

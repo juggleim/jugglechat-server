@@ -59,7 +59,7 @@ func (post PostDao) UpdatePost(appkey, postId string, title string, content []by
 	}
 	upd["updated_time"] = time.Now()
 
-	err := dbcommons.GetDb().Model(&PostDao{}).Where("app_key=? and post_id=?", appkey, postId).Update(upd).Error
+	err := dbcommons.GetDb().Model(&PostDao{}).Where("app_key=? and post_id=?", appkey, postId).Updates(upd).Error
 	return err
 }
 
@@ -133,7 +133,7 @@ func (post PostDao) QryPosts(appkey string, startTime, limit int64, isPositive b
 		conditionBuf.WriteString(" and created_time<?")
 		params = append(params, startTime)
 	}
-	err := dbcommons.GetDb().Where(conditionBuf.String(), params...).Order(orderStr).Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Where(conditionBuf.String(), params...).Order(orderStr).Limit(int(limit)).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}

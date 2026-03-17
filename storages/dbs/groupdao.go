@@ -6,8 +6,7 @@ import (
 
 	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/storages/models"
-
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 type GroupDao struct {
@@ -77,7 +76,7 @@ func (group GroupDao) Delete(appkey, groupId string) error {
 func (group GroupDao) UpdateGroupMuteStatus(appkey, groupId string, isMute int32) error {
 	upd := map[string]interface{}{}
 	upd["is_mute"] = isMute
-	return dbcommons.GetDb().Model(&GroupDao{}).Where("app_key=? and group_id=?", appkey, groupId).Update(upd).Error
+	return dbcommons.GetDb().Model(&GroupDao{}).Where("app_key=? and group_id=?", appkey, groupId).Updates(upd).Error
 }
 
 func (group GroupDao) UpdateGrpName(appkey, groupId, groupName, groupPortrait string) error {
@@ -93,7 +92,7 @@ func (group GroupDao) UpdateGrpName(appkey, groupId, groupName, groupPortrait st
 	} else {
 		return nil
 	}
-	err := dbcommons.GetDb().Model(&GroupDao{}).Where("app_key=? and group_id=?", appkey, groupId).Update(upd).Error
+	err := dbcommons.GetDb().Model(&GroupDao{}).Where("app_key=? and group_id=?", appkey, groupId).Updates(upd).Error
 	return err
 }
 
@@ -121,7 +120,7 @@ func (group GroupDao) QryGroups(appkey, name string, startId, limit int64, isPos
 		whereStr = whereStr + " and group_name like ?"
 		params = append(params, "%"+name+"%")
 	}
-	err := dbcommons.GetDb().Where(whereStr, params...).Order(orderBy).Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Where(whereStr, params...).Order(orderBy).Limit(int(limit)).Find(&items).Error
 	ret := []*models.Group{}
 	if err == nil {
 		for _, item := range items {

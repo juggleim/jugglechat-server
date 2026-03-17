@@ -43,7 +43,7 @@ func (apply FriendApplicationDao) QueryPendingApplications(appkey, recipientId s
 		condition = condition + " and apply_time<?"
 	}
 	params = append(params, startTime)
-	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(count).Find(&items).Error
+	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(int(count)).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (apply FriendApplicationDao) QueryMyApplications(appkey, sponsorId string, 
 		condition = condition + " and apply_time<?"
 	}
 	params = append(params, startTime)
-	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(count).Find(&items).Error
+	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(int(count)).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func (apply FriendApplicationDao) QueryApplications(appkey, userId string, start
 		condition = condition + " and apply_time<?"
 	}
 	params = append(params, startTime)
-	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(count).Find(&items).Error
+	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(int(count)).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}

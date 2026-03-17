@@ -62,7 +62,7 @@ func (admin AccountDao) UpdatePassword(account, password string) error {
 
 func (admin AccountDao) QryAccounts(limit int64, offset int64) ([]*AccountDao, error) {
 	var list []*AccountDao
-	err := dbcommons.GetDb().Where("id > ?", offset).Order("id asc").Limit(limit).Find(&list).Error
+	err := dbcommons.GetDb().Where("id > ?", offset).Order("id asc").Limit(int(limit)).Find(&list).Error
 	return list, err
 }
 

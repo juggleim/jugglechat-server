@@ -72,7 +72,7 @@ func (user BanUserDao) CleanBaseTime(appkey, userId string, endTime int64) error
 
 func (user BanUserDao) QryBanUsers(appkey string, limit, startId int64) ([]*models.BanUser, error) {
 	var items []*BanUserDao
-	err := dbcommons.GetDb().Where("app_key=? and (end_time=0 or end_time>?) and id>?", appkey, time.Now().UnixMilli(), startId).Order("id asc").Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Where("app_key=? and (end_time=0 or end_time>?) and id>?", appkey, time.Now().UnixMilli(), startId).Order("id asc").Limit(int(limit)).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}

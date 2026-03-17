@@ -2,8 +2,7 @@ package dbs
 
 import (
 	"github.com/juggleim/jugglechat-server/commons/dbcommons"
-
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 type FileConfDao struct {
