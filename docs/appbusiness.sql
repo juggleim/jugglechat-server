@@ -197,7 +197,8 @@ CREATE TABLE IF NOT EXISTS `grpapplications` (
   UNIQUE KEY `uniq_apply` (`app_key`,`group_id`,`apply_type`,`sponsor_id`,`recipient_id`),
   KEY `idx_sponsor` (`app_key`,`apply_type`,`sponsor_id`,`apply_time`),
   KEY `idx_group` (`app_key`,`apply_type`,`group_id`,`apply_time`),
-  KEY `idx_recipient` (`app_key`,`apply_type`,`recipient_id`,`apply_time`)
+  KEY `idx_recipient` (`app_key`,`apply_type`,`recipient_id`,`apply_time`),
+  KEY `idx_app_group_time` (`app_key`, `group_id`, `apply_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS `qrcoderecords` (

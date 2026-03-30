@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"gorm.io/gorm"
 	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/storages/models"
+	"gorm.io/gorm"
 
 	"time"
 )
@@ -62,7 +62,7 @@ func (apply GrpApplicationDao) ApplyUpsert(item models.GrpApplication) error {
 }
 
 func (apply GrpApplicationDao) UpdateStatus(id int64, status models.GrpApplicationStatus) error {
-	return dbcommons.GetDb().Model(&GrpApplicationDao{}).Where("id=?").Update("status", status).Error
+	return dbcommons.GetDb().Model(&GrpApplicationDao{}).Where("id=?", id).Update("status", status).Error
 }
 
 func (apply GrpApplicationDao) QueryMyGrpApplications(appkey, sponsorId string, startTime, count int64, isPositive bool) ([]*models.GrpApplication, error) {
