@@ -8,7 +8,7 @@ mysql:
   user: root
   password: Abc123456
   address: localhost:3306
-  name: im_db
+  name: jim_db
   debug: true
 
 imApiDomain: http://127.0.0.1:9001

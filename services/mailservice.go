@@ -124,6 +124,9 @@ func loadMailEngine(appInfo *appinfos.AppInfo) {
 			} else if mailConf.Channel == "engagelab" && mailConf.EngagelabEmailEngine != nil && mailConf.EngagelabEmailEngine.Url != "" && mailConf.EngagelabEmailEngine.ApiKey != "" && mailConf.EngagelabEmailEngine.ApiUser != "" {
 				appInfo.MailEngine = mailConf.EngagelabEmailEngine
 				return
+			} else if mailConf.Channel == "neteasy" && mailConf.NeteasyEmailEngine != nil && mailConf.NeteasyEmailEngine.Username != "" && mailConf.NeteasyEmailEngine.AuthCode != "" {
+				appInfo.MailEngine = mailConf.NeteasyEmailEngine
+				return
 			}
 		}
 	}
@@ -134,4 +137,5 @@ type MailEngineConf struct {
 	Channel              string                             `json:"channel,omitempty"`
 	AliMailEngine        *emailengines.AliEmailEngine       `json:"ali,omitempty"`
 	EngagelabEmailEngine *emailengines.EngagelabEmailEngine `json:"engagelab"`
+	NeteasyEmailEngine   *emailengines.NeteasyEmailEngine   `json:"neteasy,omitempty"`
 }
