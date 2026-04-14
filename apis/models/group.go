@@ -1,15 +1,15 @@
 package models
 
 type Group struct {
-	GroupId         string           `json:"group_id"`
-	GroupName       string           `json:"group_name"`
-	GroupPortrait   string           `json:"group_portrait"`
-	GrpMembers      []*GroupMember   `json:"members,omitempty"`
-	MemberIds       []string         `json:"member_ids,omitempty"`
-	MemberCount     int              `json:"member_count"`
-	Owner           *UserObj         `json:"owner,omitempty"`
-	MyRole          int              `json:"my_role"`
-	GroupManagement *GroupManagement `json:"group_management"`
+	GroupId         string             `json:"group_id"`
+	GroupName       string             `json:"group_name"`
+	GroupPortrait   string             `json:"group_portrait"`
+	GrpMembers      []*GroupMemberInfo `json:"members,omitempty"`
+	MemberIds       []string           `json:"member_ids,omitempty"`
+	MemberCount     int                `json:"member_count"`
+	Owner           *UserObj           `json:"owner,omitempty"`
+	MyRole          int                `json:"my_role"`
+	GroupManagement *GroupManagement   `json:"group_management"`
 }
 
 type GroupManagement struct {
@@ -36,15 +36,6 @@ type Groups struct {
 type GroupAnnouncement struct {
 	GroupId string `json:"group_id"`
 	Content string `json:"content"`
-}
-
-type GroupMember struct {
-	UserObj
-}
-
-type GroupMembersResp struct {
-	Items  []*GroupMember `json:"items"`
-	Offset string         `json:"offset"`
 }
 
 type CheckGroupMembersReq struct {

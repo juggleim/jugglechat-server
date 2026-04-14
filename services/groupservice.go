@@ -699,6 +699,7 @@ func QueryGrpMembers(ctx context.Context, groupId string, limit int64, offset st
 				Avatar:     member.UserPortrait,
 				FriendInfo: friendInfo,
 				Role:       role,
+				IsMute:     member.IsMute,
 			})
 		}
 	}
