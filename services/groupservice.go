@@ -651,6 +651,7 @@ func DelGrpMembers(ctx context.Context, req *apimodels.GroupMembersReq) errs.IME
 
 func QueryGrpMembers(ctx context.Context, groupId string, limit int64, offset string) (errs.IMErrorCode, *apimodels.GroupMemberInfos) {
 	userId := ctxs.GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	storage := storages.NewGroupMemberStorage()
 	var startId int64 = 0
 	if offset != "" {
@@ -662,8 +663,22 @@ func QueryGrpMembers(ctx context.Context, groupId string, limit int64, offset st
 	ret := &apimodels.GroupMemberInfos{
 		Items: []*apimodels.GroupMemberInfo{},
 	}
-	members, err := storage.QueryMembers(ctxs.GetAppKeyFromCtx(ctx), userId, groupId, startId, limit)
+	members, err := storage.QueryMembers(appkey, userId, groupId, startId, limit)
 	if err == nil {
+		grpStorage := storages.NewGroupStorage()
+		grpInfo, err := grpStorage.FindById(appkey, groupId)
+		if err != nil || grpInfo == nil {
+			return errs.IMErrorCode_APP_DEFAULT, nil
+		}
+		//grp administrator
+		administrators := map[string]bool{}
+		grpAdminStorage := storages.NewGroupAdminStorage()
+		admins, err := grpAdminStorage.QryAdmins(appkey, groupId)
+		if err == nil {
+			for _, admin := range admins {
+				administrators[admin.AdminId] = true
+			}
+		}
 		for _, member := range members {
 			friendInfo := &apimodels.FriendInfo{}
 			if member.MemberFriendInfo != nil {
@@ -671,12 +686,19 @@ func QueryGrpMembers(ctx context.Context, groupId string, limit int64, offset st
 				friendInfo.DisplayName = member.MemberFriendInfo.DisplayName
 			}
 			ret.Offset, _ = utils.EncodeInt(member.ID)
+			role := apimodels.GrpMemberRole_GrpMember
+			if member.MemberId == grpInfo.CreatorId {
+				role = apimodels.GrpMemberRole_GrpCreator
+			} else if _, exist := administrators[member.MemberId]; exist {
+				role = apimodels.GrpMemberRole_GrpAdmin
+			}
 			ret.Items = append(ret.Items, &apimodels.GroupMemberInfo{
 				UserId:     member.MemberId,
 				MemberType: member.MemberType,
 				Nickname:   member.Nickname,
 				Avatar:     member.UserPortrait,
 				FriendInfo: friendInfo,
+				Role:       role,
 			})
 		}
 	}
