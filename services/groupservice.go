@@ -259,13 +259,18 @@ func SearchGroupMembers(ctx context.Context, req *apimodels.SearchGroupMembersRe
 	storage := storages.NewGroupMemberStorage()
 	members, err := storage.SearchMembersByName(appkey, userId, groupId, req.Key, startId, limit)
 	if err == nil {
+		seenMemberIds := map[string]struct{}{}
 		for _, member := range members {
+			ret.Offset, _ = utils.EncodeInt(member.ID)
+			if _, ok := seenMemberIds[member.MemberId]; ok {
+				continue
+			}
+			seenMemberIds[member.MemberId] = struct{}{}
 			friendInfo := &apimodels.FriendInfo{}
 			if member.MemberFriendInfo != nil {
 				friendInfo.IsFriend = member.MemberFriendInfo.IsFriend
 				friendInfo.DisplayName = member.MemberFriendInfo.DisplayName
 			}
-			ret.Offset, _ = utils.EncodeInt(member.ID)
 			ret.Items = append(ret.Items, &apimodels.GroupMemberInfo{
 				UserId:     member.MemberId,
 				MemberType: member.MemberType,
