@@ -92,12 +92,12 @@ func SearchFriends(ctx *gin.Context) {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	// code, resp := services.SearchFriends(ctxs.ToCtx(ctx), &req)
-	// if code != errs.IMErrorCode_SUCCESS {
-	// 	responses.ErrorHttpResp(ctx, code)
-	// 	return
-	// }
-	responses.SuccessHttpResp(ctx, &models.Users{})
+	code, resp := services.SearchFriends(ctxs.ToCtx(ctx), &req)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func AddFriend(ctx *gin.Context) {
@@ -138,13 +138,13 @@ func ApplyFriend(ctx *gin.Context) {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	// code := services.ApplyFriend(ctxs.ToCtx(ctx), &models.ApplyFriend{
-	// 	FriendId: req.FriendId,
-	// })
-	// if code != errs.IMErrorCode_SUCCESS {
-	// 	responses.ErrorHttpResp(ctx, code)
-	// 	return
-	// }
+	code := services.ApplyFriend(ctxs.ToCtx(ctx), &models.ApplyFriend{
+		FriendId: req.FriendId,
+	})
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
 	responses.SuccessHttpResp(ctx, nil)
 }
 

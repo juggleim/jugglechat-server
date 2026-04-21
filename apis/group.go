@@ -245,12 +245,12 @@ func SearchGroupMembers(ctx *gin.Context) {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	// code, resp := services.SearchGroupMembers(ctxs.ToCtx(ctx), &req)
-	// if code != errs.IMErrorCode_SUCCESS {
-	// 	responses.ErrorHttpResp(ctx, code)
-	// 	return
-	// }
-	responses.SuccessHttpResp(ctx, &models.GroupMemberInfos{})
+	code, resp := services.SearchGroupMembers(ctxs.ToCtx(ctx), &req)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func SetGrpAnnouncement(ctx *gin.Context) {
