@@ -43,12 +43,13 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 			MaxAdminCount:      10,
 			GroupHisMsgVisible: 1,
 
-			GroupEditMsgRight:    utils.IntPtr(7),
-			GroupAddMemberRight:  utils.IntPtr(7),
-			GroupMentionAllRight: utils.IntPtr(7),
-			GroupTopMsgRight:     utils.IntPtr(7),
-			GroupSendMsgRight:    utils.IntPtr(7),
-			GroupSetMsgLifeRight: utils.IntPtr(7),
+			GroupEditMsgRight:     utils.IntPtr(7),
+			GroupAddMemberRight:   utils.IntPtr(7),
+			GroupMentionAllRight:  utils.IntPtr(7),
+			GroupTopMsgRight:      utils.IntPtr(7),
+			GroupSendMsgRight:     utils.IntPtr(7),
+			GroupSetMsgLifeRight:  utils.IntPtr(7),
+			GroupApplyFriendRight: utils.IntPtr(7),
 		},
 	}
 	isMember := false
@@ -92,6 +93,8 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 				ret.GroupManagement.GroupSendMsgRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
 			} else if ext.ItemKey == apimodels.AttItemKey_SetMsgLifeRight {
 				ret.GroupManagement.GroupSetMsgLifeRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
+			} else if ext.ItemKey == apimodels.AttItemKey_ApplyFriendRight {
+				ret.GroupManagement.GroupApplyFriendRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
 			}
 		}
 	}
@@ -176,12 +179,13 @@ func GetGroupInfo(ctx context.Context, groupId string) *apimodels.GrpInfo {
 
 func GetGroupSettings(ctx context.Context, groupId string) *apimodels.GroupManagement {
 	ret := &apimodels.GroupManagement{
-		GroupEditMsgRight:    utils.IntPtr(7),
-		GroupAddMemberRight:  utils.IntPtr(7),
-		GroupMentionAllRight: utils.IntPtr(7),
-		GroupTopMsgRight:     utils.IntPtr(7),
-		GroupSendMsgRight:    utils.IntPtr(7),
-		GroupSetMsgLifeRight: utils.IntPtr(7),
+		GroupEditMsgRight:     utils.IntPtr(7),
+		GroupAddMemberRight:   utils.IntPtr(7),
+		GroupMentionAllRight:  utils.IntPtr(7),
+		GroupTopMsgRight:      utils.IntPtr(7),
+		GroupSendMsgRight:     utils.IntPtr(7),
+		GroupSetMsgLifeRight:  utils.IntPtr(7),
+		GroupApplyFriendRight: utils.IntPtr(7),
 	}
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	grpExtStorage := storages.NewGroupExtStorage()
@@ -213,6 +217,8 @@ func GetGroupSettings(ctx context.Context, groupId string) *apimodels.GroupManag
 				ret.GroupSendMsgRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
 			} else if ext.ItemKey == apimodels.AttItemKey_SetMsgLifeRight {
 				ret.GroupSetMsgLifeRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
+			} else if ext.ItemKey == apimodels.AttItemKey_ApplyFriendRight {
+				ret.GroupApplyFriendRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
 			}
 		}
 	}
@@ -884,6 +890,15 @@ func SetGroupManagementConfs(ctx context.Context, req *apimodels.GroupManagement
 			GroupId:   req.GroupId,
 			ItemKey:   apimodels.AttItemKey_SetMsgLifeRight,
 			ItemValue: utils.Int2String(int64(*req.GroupSetMsgLifeRight)),
+			ItemType:  apimodels.AttItemType_Setting,
+			AppKey:    appkey,
+		})
+	}
+	if req.GroupApplyFriendRight != nil {
+		items = append(items, models.GroupExt{
+			GroupId:   req.GroupId,
+			ItemKey:   apimodels.AttItemKey_ApplyFriendRight,
+			ItemValue: utils.Int2String(int64(*req.GroupApplyFriendRight)),
 			ItemType:  apimodels.AttItemType_Setting,
 			AppKey:    appkey,
 		})
