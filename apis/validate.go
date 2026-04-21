@@ -17,6 +17,7 @@ const (
 	Header_RequestId     string = "request-id"
 	Header_AppKey        string = "appkey"
 	Header_Authorization string = "Authorization"
+	Header_Version       string = "version"
 )
 
 func Validate(ctx *gin.Context) {
@@ -32,6 +33,10 @@ func Validate(ctx *gin.Context) {
 		return
 	}
 	ctx.Set(string(ctxs.CtxKey_AppKey), appkey)
+	version := ctx.Request.Header.Get(Header_Version)
+	if version != "" {
+		ctx.Set(string(ctxs.CtxKey_Version), version)
+	}
 	//check app exist
 	appInfo, exist := appinfos.GetAppInfo(appkey)
 	if !exist {

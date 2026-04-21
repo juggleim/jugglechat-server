@@ -245,6 +245,10 @@ func SearchGroupMembers(ctx *gin.Context) {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
+	if services.CheckApiBlockByVersion(ctxs.ToCtx(ctx)) {
+		responses.SuccessHttpResp(ctx, &models.GroupMemberInfos{})
+		return
+	}
 	code, resp := services.SearchGroupMembers(ctxs.ToCtx(ctx), &req)
 	if code != errs.IMErrorCode_SUCCESS {
 		responses.ErrorHttpResp(ctx, code)

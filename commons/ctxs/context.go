@@ -15,6 +15,7 @@ const (
 
 	CtxKey_Account  CtxKey = "CtxKey_Account"
 	CtxKey_RoleType CtxKey = "CtxKey_RoleType"
+	CtxKey_Version  CtxKey = "CtxKey_Version"
 )
 
 func ToCtx(ginCtx *gin.Context) context.Context {
@@ -26,6 +27,10 @@ func ToCtx(ginCtx *gin.Context) context.Context {
 	session := ginCtx.GetString(string(CtxKey_Session))
 	if session != "" {
 		rpcCtx = context.WithValue(rpcCtx, CtxKey_Session, session)
+	}
+	version := ginCtx.GetString(string(CtxKey_Version))
+	if version != "" {
+		rpcCtx = context.WithValue(rpcCtx, CtxKey_Version, version)
 	}
 	currentUserId := ginCtx.GetString(string(CtxKey_RequesterId))
 	if currentUserId != "" {
@@ -62,6 +67,13 @@ func GetSessionFromCtx(ctx context.Context) string {
 func GetAccountFromCtx(ctx context.Context) string {
 	if requesterId, ok := ctx.Value(CtxKey_Account).(string); ok {
 		return requesterId
+	}
+	return ""
+}
+
+func GetVersionFromCtx(ctx context.Context) string {
+	if version, ok := ctx.Value(CtxKey_Version).(string); ok {
+		return version
 	}
 	return ""
 }
