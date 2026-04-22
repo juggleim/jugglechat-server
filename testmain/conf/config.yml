@@ -6,9 +6,9 @@ log:
 
 mysql:
   user: root
-  password: Abc123456
+  password: 123456
   address: localhost:3306
-  name: jim_db
+  name: im_db
   debug: true
 
 imApiDomain: http://127.0.0.1:9001

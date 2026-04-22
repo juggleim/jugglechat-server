@@ -108,9 +108,9 @@ type GroupMemberWithUser struct {
 }
 
 func (member GroupMemberDao) QueryMembers(appkey, userId, groupId string, startId, limit int64) ([]*models.GroupMember, error) {
-	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type,f.friend_id,f.display_name as friend_display_name from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id left join %s as f on m.app_key=f.app_key and f.user_id=? and f.friend_id=m.member_id where m.app_key=? and m.group_id=? and m.id>?", member.TableName(), UserDao{}.TableName(), FriendRelDao{}.TableName())
+	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type,f.friend_id,f.display_name as friend_display_name from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id left join %s as f on m.app_key=f.app_key and f.user_id=? and f.friend_id=m.member_id where m.app_key=? and m.group_id=? and m.id>? order by m.id asc limit ?", member.TableName(), UserDao{}.TableName(), FriendRelDao{}.TableName())
 	var items []*GroupMemberWithUser
-	err := dbcommons.GetDb().Raw(sql, userId, appkey, groupId, startId).Order("m.id asc").Limit(int(limit)).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, userId, appkey, groupId, startId, limit).Find(&items).Error
 	ret := []*models.GroupMember{}
 	for _, item := range items {
 		friendInfo := &models.FriendInfo{}
@@ -138,9 +138,9 @@ func (member GroupMemberDao) QueryMembers(appkey, userId, groupId string, startI
 }
 
 func (member GroupMemberDao) SearchMembersByName(appkey, userId, groupId, nickname string, startId, limit int64) ([]*models.GroupMember, error) {
-	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type,f.friend_id,f.display_name as friend_display_name from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id left join %s as f on m.app_key=f.app_key and f.user_id=? and f.friend_id=m.member_id where m.app_key=? and m.group_id=? and m.id>? and u.nickname like ?", member.TableName(), UserDao{}.TableName(), FriendRelDao{}.TableName())
+	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type,f.friend_id,f.display_name as friend_display_name from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id left join %s as f on m.app_key=f.app_key and f.user_id=? and f.friend_id=m.member_id where m.app_key=? and m.group_id=? and m.id>? and u.nickname like ? order by m.id asc limit ?", member.TableName(), UserDao{}.TableName(), FriendRelDao{}.TableName())
 	var items []*GroupMemberWithUser
-	err := dbcommons.GetDb().Raw(sql, userId, appkey, groupId, startId, "%"+nickname+"%").Order("m.id asc").Limit(int(limit)).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, userId, appkey, groupId, startId, "%"+nickname+"%", limit).Find(&items).Error
 	ret := []*models.GroupMember{}
 	for _, item := range items {
 		friendInfo := &models.FriendInfo{}
