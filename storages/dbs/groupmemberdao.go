@@ -110,7 +110,7 @@ type GroupMemberWithUser struct {
 func (member GroupMemberDao) QueryMembers(appkey, userId, groupId string, startId, limit int64) ([]*models.GroupMember, error) {
 	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type,f.friend_id,f.display_name as friend_display_name from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id left join %s as f on m.app_key=f.app_key and f.user_id=? and f.friend_id=m.member_id where m.app_key=? and m.group_id=? and m.id>? order by m.id asc limit ?", member.TableName(), UserDao{}.TableName(), FriendRelDao{}.TableName())
 	var items []*GroupMemberWithUser
-	err := dbcommons.GetDb().Raw(sql, userId, appkey, groupId, startId, limit).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, userId, appkey, groupId, startId, limit).Scan(&items).Error
 	ret := []*models.GroupMember{}
 	for _, item := range items {
 		friendInfo := &models.FriendInfo{}
@@ -140,7 +140,7 @@ func (member GroupMemberDao) QueryMembers(appkey, userId, groupId string, startI
 func (member GroupMemberDao) SearchMembersByName(appkey, userId, groupId, nickname string, startId, limit int64) ([]*models.GroupMember, error) {
 	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type,f.friend_id,f.display_name as friend_display_name from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id left join %s as f on m.app_key=f.app_key and f.user_id=? and f.friend_id=m.member_id where m.app_key=? and m.group_id=? and m.id>? and u.nickname like ? order by m.id asc limit ?", member.TableName(), UserDao{}.TableName(), FriendRelDao{}.TableName())
 	var items []*GroupMemberWithUser
-	err := dbcommons.GetDb().Raw(sql, userId, appkey, groupId, startId, "%"+nickname+"%", limit).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, userId, appkey, groupId, startId, "%"+nickname+"%", limit).Scan(&items).Error
 	ret := []*models.GroupMember{}
 	for _, item := range items {
 		friendInfo := &models.FriendInfo{}
@@ -174,9 +174,9 @@ type GroupMemberWithGroup struct {
 }
 
 func (member GroupMemberDao) QueryGroupsByMemberId(appkey, memberId string, startId, limit int64) ([]*models.GroupMember, error) {
-	sql := fmt.Sprintf("select m.*,g.group_name,g.group_portrait from %s as m left join %s as g on m.app_key=g.app_key and m.group_id=g.group_id where m.app_key=? and m.member_id=? and m.id>?", member.TableName(), GroupDao{}.TableName())
+	sql := fmt.Sprintf("select m.*,g.group_name,g.group_portrait from %s as m left join %s as g on m.app_key=g.app_key and m.group_id=g.group_id where m.app_key=? and m.member_id=? and m.id>? order by m.id asc limit ?", member.TableName(), GroupDao{}.TableName())
 	var items []*GroupMemberWithGroup
-	err := dbcommons.GetDb().Raw(sql, appkey, memberId, startId).Order("m.id asc").Limit(int(limit)).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, appkey, memberId, startId, limit).Scan(&items).Error
 	ret := []*models.GroupMember{}
 	for _, item := range items {
 		ret = append(ret, &models.GroupMember{
@@ -198,9 +198,9 @@ func (member GroupMemberDao) QueryGroupsByMemberId(appkey, memberId string, star
 }
 
 func (member GroupMemberDao) SearchGroupsByMemberId(appkey, memberId string, keyword string, startId, limit int64) ([]*models.GroupMember, error) {
-	sql := fmt.Sprintf("select m.*,g.group_name,g.group_portrait from %s as m left join %s as g on m.app_key=g.app_key and m.group_id=g.group_id where m.app_key=? and m.member_id=? and m.id>? and g.group_name like ?", member.TableName(), GroupDao{}.TableName())
+	sql := fmt.Sprintf("select m.*,g.group_name,g.group_portrait from %s as m left join %s as g on m.app_key=g.app_key and m.group_id=g.group_id where m.app_key=? and m.member_id=? and m.id>? and g.group_name like ? order by m.id asc limit ?", member.TableName(), GroupDao{}.TableName())
 	var items []*GroupMemberWithGroup
-	err := dbcommons.GetDb().Raw(sql, appkey, memberId, startId, "%"+keyword+"%").Order("m.id asc").Limit(int(limit)).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, appkey, memberId, startId, "%"+keyword+"%", limit).Scan(&items).Error
 	ret := []*models.GroupMember{}
 	for _, item := range items {
 		ret = append(ret, &models.GroupMember{

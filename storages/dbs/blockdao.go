@@ -87,8 +87,8 @@ type BlockUserWithUser struct {
 
 func (block BlockDao) QryBlockUsers(appkey, userId string, limit, startId int64) ([]*models.BlockUser, error) {
 	var items []*BlockUserWithUser
-	sql := fmt.Sprintf("select b.*,u.nickname,u.user_portrait,u.user_type,u.pinyin from %s as b left join %s as u on b.app_key=u.app_key and b.block_user_id=u.user_id where b.app_key=? and b.user_id=? and b.id>?", block.TableName(), UserDao{}.TableName())
-	err := dbcommons.GetDb().Raw(sql, appkey, userId, startId).Order("b.id asc").Limit(int(limit)).Find(&items).Error
+	sql := fmt.Sprintf("select b.*,u.nickname,u.user_portrait,u.user_type,u.pinyin from %s as b left join %s as u on b.app_key=u.app_key and b.block_user_id=u.user_id where b.app_key=? and b.user_id=? and b.id>? order by b.id asc limit ?", block.TableName(), UserDao{}.TableName())
+	err := dbcommons.GetDb().Raw(sql, appkey, userId, startId, limit).Scan(&items).Error
 	ret := []*models.BlockUser{}
 	if err == nil {
 		for _, item := range items {

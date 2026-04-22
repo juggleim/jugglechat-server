@@ -81,8 +81,12 @@ func (rel FriendRelDao) QueryFriendRelsWithPage(appkey, userId string, orderTag 
 		params = append(params, orderTag)
 	}
 
+	offset := (page - 1) * size
+	sql = sql + " order by case when u.pinyin REGEXP '^[A-Za-z]' then 1 else 0 end desc, u.pinyin asc limit ? offset ?"
+	params = append(params, size, offset)
+
 	var items []*FriendRelWithUser
-	err := dbcommons.GetDb().Raw(sql, params...).Order("case when u.pinyin REGEXP '^[A-Za-z]' then 1 else 0 end desc, u.pinyin asc").Offset(int((page - 1) * size)).Limit(int(size)).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, params...).Scan(&items).Error
 	if err != nil {
 		return nil, err
 	}
@@ -113,9 +117,9 @@ type FriendRelWithUser struct {
 }
 
 func (rel FriendRelDao) SearchFriendsByName(appkey, userId string, nickname string, startId, limit int64) ([]*models.User, error) {
-	sql := fmt.Sprintf("select r.*,u.nickname,u.user_portrait,u.user_type,u.pinyin from %s as r left join %s as u on r.app_key=u.app_key and r.friend_id=u.user_id where r.app_key=? and r.user_id=? and r.id>? and (u.nickname like ? or r.display_name like ? )", rel.TableName(), UserDao{}.TableName())
+	sql := fmt.Sprintf("select r.*,u.nickname,u.user_portrait,u.user_type,u.pinyin from %s as r left join %s as u on r.app_key=u.app_key and r.friend_id=u.user_id where r.app_key=? and r.user_id=? and r.id>? and (u.nickname like ? or r.display_name like ? ) order by r.id asc limit ?", rel.TableName(), UserDao{}.TableName())
 	var items []*FriendRelWithUser
-	err := dbcommons.GetDb().Raw(sql, appkey, userId, startId, "%"+nickname+"%", "%"+nickname+"%").Order("r.id asc").Limit(int(limit)).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, appkey, userId, startId, "%"+nickname+"%", "%"+nickname+"%", limit).Scan(&items).Error
 	ret := []*models.User{}
 	if err == nil {
 		for _, item := range items {

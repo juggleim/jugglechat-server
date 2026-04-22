@@ -42,7 +42,7 @@ func (rel AccountAppRelDao) FindByAppkey(account string, appkey string) *AppInfo
 
 func (rel AccountAppRelDao) QryApps(account string, limit int64, offset int64) ([]*AppInfoDao, error) {
 	var list []*AppInfoDao
-	sql := fmt.Sprintf("select app.* from %s as rel left join %s as app on rel.app_key=app.app_key where rel.account=? and app.id<?", rel.TableName(), AppInfoDao{}.TableName())
-	err := dbcommons.GetDb().Raw(sql, account, offset).Order("app.id desc").Limit(int(limit)).Find(&list).Error
+	sql := fmt.Sprintf("select app.* from %s as rel left join %s as app on rel.app_key=app.app_key where rel.account=? and app.id<? order by app.id desc limit ?", rel.TableName(), AppInfoDao{}.TableName())
+	err := dbcommons.GetDb().Raw(sql, account, offset, limit).Scan(&list).Error
 	return list, err
 }
