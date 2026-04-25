@@ -88,7 +88,6 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.POST("/friends/setdisplayname", apis.SetFriendDisplayName)
 	group.POST("/friends/search", apis.SearchFriends)
 	group.POST("/friends/apply", apis.ApplyFriend)
-	group.POST("/:version/friends/apply", apis.ApplyFriend)
 	group.POST("/friends/confirm", apis.ConfirmFriend)
 	group.POST("/friends/del", apis.DelFriend)
 	group.GET("/friends/applications", apis.FriendApplications)

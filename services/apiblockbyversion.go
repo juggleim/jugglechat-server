@@ -18,7 +18,10 @@ func CheckApiBlockByVersion(ctx context.Context) bool {
 				blockVersion := obj.(string)
 				blockVersion = strings.TrimSpace(blockVersion)
 				version := strings.TrimSpace(ctxs.GetVersionFromCtx(ctx))
-				if version == "" || blockVersion == "" {
+				if version == "" {
+					version = "0"
+				}
+				if blockVersion == "" {
 					return false
 				}
 				return compareVersion(version, blockVersion) < 0
