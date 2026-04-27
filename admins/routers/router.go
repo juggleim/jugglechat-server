@@ -90,6 +90,15 @@ func init() {
 	proxyPathMap["/apps/sensitivewords/import"] = http.MethodPost
 	proxyPathMap["/apps/sensitivewords/add"] = http.MethodPost
 	proxyPathMap["/apps/sensitivewords/delete"] = http.MethodPost
+
+	proxyPathMap["/apps/interceptors/add"] = http.MethodPost
+	proxyPathMap["/apps/interceptors/delete"] = http.MethodPost
+	proxyPathMap["/apps/interceptors/update"] = http.MethodPost
+	proxyPathMap["/apps/interceptors/list"] = http.MethodGet
+	proxyPathMap["/apps/interceptors/conditions/add"] = http.MethodPost
+	proxyPathMap["/apps/interceptors/conditions/delete"] = http.MethodPost
+	proxyPathMap["/apps/interceptors/conditions/update"] = http.MethodPost
+	proxyPathMap["/apps/interceptors/conditions/list"] = http.MethodGet
 }
 
 func RouteProxy(group *gin.RouterGroup) *gin.RouterGroup {
