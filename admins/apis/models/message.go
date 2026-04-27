@@ -15,7 +15,7 @@ type HisMsg struct {
 }
 
 type RecallHisMsgReq struct {
-	AppKey      string            `json:"appkey"`
+	AppKey      string            `json:"app_key"`
 	FromId      string            `json:"from_id"`
 	TargetId    string            `json:"target_id"`
 	ChannelType int               `json:"channel_type"`
@@ -25,7 +25,7 @@ type RecallHisMsgReq struct {
 }
 
 type DelHisMsgsReq struct {
-	AppKey      string                   `json:"appkey"`
+	AppKey      string                   `json:"app_key"`
 	FromId      string                   `json:"from_id"`
 	TargetId    string                   `json:"target_id"`
 	ChannelType int                      `json:"channel_type"`
