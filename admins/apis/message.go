@@ -73,3 +73,70 @@ func QryHistoryMsgs(ctx *gin.Context) {
 	}
 	responses.AdminSuccessHttpResp(ctx, ret)
 }
+
+func RecallHistoryMsg(ctx *gin.Context) {
+	var req models.RecallHisMsgReq
+	if err := ctx.BindJSON(&req); err != nil || req.AppKey == "" || req.FromId == "" || req.TargetId == "" || req.MsgId == "" || req.ChannelType == 0 {
+		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
+		return
+	}
+	sdk := imsdk.GetImSdk(req.AppKey)
+	if sdk != nil {
+		cType := juggleimsdk.ChannelType_Private
+		if req.ChannelType == 1 {
+			cType = juggleimsdk.ChannelType_Private
+		} else if req.ChannelType == 2 {
+			cType = juggleimsdk.ChannelType_Group
+		}
+		code, _, err := sdk.RecallMsg(&juggleimsdk.RecallMsgReq{
+			FromId:      req.FromId,
+			TargetId:    req.TargetId,
+			ChannelType: int32(cType),
+			MsgId:       req.MsgId,
+			MsgTime:     req.MsgTime,
+			Exts:        req.Exts,
+		})
+		if err != nil {
+			responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ServerErr)
+			return
+		}
+		if code != juggleimsdk.ApiCode_Success {
+			responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode(code))
+			return
+		}
+	}
+	responses.AdminSuccessHttpResp(ctx, nil)
+}
+
+func DelHistoryMsg(ctx *gin.Context) {
+	var req models.DelHisMsgsReq
+	if err := ctx.BindJSON(&req); err != nil || req.AppKey == "" || req.FromId == "" || req.TargetId == "" || req.ChannelType == 0 || len(req.Msgs) <= 0 {
+		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
+		return
+	}
+	sdk := imsdk.GetImSdk(req.AppKey)
+	if sdk != nil {
+		cType := juggleimsdk.ChannelType_Private
+		if req.ChannelType == 1 {
+			cType = juggleimsdk.ChannelType_Private
+		} else if req.ChannelType == 2 {
+			cType = juggleimsdk.ChannelType_Group
+		}
+		code, _, err := sdk.DelMsgs(&juggleimsdk.DelMsgsReq{
+			FromId:      req.FromId,
+			TargetId:    req.TargetId,
+			ChannelType: int32(cType),
+			DelScope:    1,
+			Msgs:        req.Msgs,
+		})
+		if err != nil {
+			responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ServerErr)
+			return
+		}
+		if code != juggleimsdk.ApiCode_Success {
+			responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode(code))
+			return
+		}
+	}
+	responses.AdminSuccessHttpResp(ctx, nil)
+}

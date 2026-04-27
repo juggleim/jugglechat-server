@@ -129,6 +129,8 @@ func Route(group *gin.RouterGroup) *gin.RouterGroup {
 	group.GET("/apps/convers/list", apis.QryConversations)
 	//history msgs
 	group.GET("/apps/historymsgs/list", apis.QryHistoryMsgs)
+	group.GET("/apps/historymsgs/recall", apis.RecallHistoryMsg)
+	group.GET("/apps/historymsgs/del", apis.DelHistoryMsg)
 
 	//applications
 	group.POST("/apps/applications/add", apis.AddApplication)
