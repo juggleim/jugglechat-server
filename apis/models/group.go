@@ -127,13 +127,14 @@ const (
 )
 
 type GroupMemberInfo struct {
-	UserId     string        `json:"user_id"`
-	Nickname   string        `json:"nickname"`
-	Avatar     string        `json:"avatar"`
-	MemberType int           `json:"member_type"`
-	Role       GrpMemberRole `json:"role"`
-	IsMute     int           `json:"is_mute"`
-	FriendInfo *FriendInfo   `json:"friend_info"`
+	UserId         string        `json:"user_id"`
+	Nickname       string        `json:"nickname"`
+	Avatar         string        `json:"avatar"`
+	GrpDisplayName string        `json:"grp_display_name,omitempty"`
+	MemberType     int           `json:"member_type"`
+	Role           GrpMemberRole `json:"role"`
+	IsMute         int           `json:"is_mute"`
+	FriendInfo     *FriendInfo   `json:"friend_info"`
 }
 
 type GroupOwnerChgReq struct {

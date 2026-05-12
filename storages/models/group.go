@@ -124,11 +124,15 @@ type IGroupMemberStorage interface {
 }
 
 type GroupAdmin struct {
-	ID          int64
-	GroupId     string
-	AdminId     string
-	CreatedTime time.Time
-	AppKey      string
+	ID             int64
+	GroupId        string
+	AdminId        string
+	Nickname       string
+	UserPortrait   string
+	UserType       int
+	GrpDisplayName string
+	CreatedTime    time.Time
+	AppKey         string
 }
 
 type IGroupAdminStorage interface {

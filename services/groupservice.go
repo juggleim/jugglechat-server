@@ -934,6 +934,7 @@ func DelGroupAdministrators(ctx context.Context, req *apimodels.GroupAdministrat
 
 func QryGroupAdministrators(ctx context.Context, groupId string) (errs.IMErrorCode, *apimodels.GroupAdministratorsResp) {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	requesterId := ctxs.GetRequesterIdFromCtx(ctx)
 	ret := &apimodels.GroupAdministratorsResp{
 		GroupId: groupId,
 		Items:   []*apimodels.GroupMemberInfo{},
@@ -941,24 +942,38 @@ func QryGroupAdministrators(ctx context.Context, groupId string) (errs.IMErrorCo
 	storage := storages.NewGroupAdminStorage()
 	admins, err := storage.QryAdmins(appkey, groupId)
 	if err == nil {
-		mIds := []string{}
+		friendMap := map[string]*models.FriendInfo{}
+		adminIds := []string{}
 		for _, admin := range admins {
-			mIds = append(mIds, admin.AdminId)
-			ret.Items = append(ret.Items, &apimodels.GroupMemberInfo{
-				UserId: admin.AdminId,
-				Role:   apimodels.GrpMemberRole_GrpAdmin,
-			})
+			adminIds = append(adminIds, admin.AdminId)
 		}
-		userStorage := storages.NewUserStorage()
-		userMap, err := userStorage.FindByUserIds(appkey, mIds)
-		if err == nil {
-			for _, member := range ret.Items {
-				if u, exist := userMap[member.UserId]; exist {
-					member.Nickname = u.Nickname
-					member.Avatar = u.UserPortrait
-					member.MemberType = u.UserType
+		if len(adminIds) > 0 {
+			friendStorage := storages.NewFriendRelStorage()
+			friendRels, ferr := friendStorage.QueryFriendRelsByFriendIds(appkey, requesterId, adminIds)
+			if ferr == nil {
+				for _, rel := range friendRels {
+					friendMap[rel.FriendId] = &models.FriendInfo{
+						IsFriend:    true,
+						DisplayName: rel.DisplayName,
+					}
 				}
 			}
+		}
+		for _, admin := range admins {
+			friendInfo := &apimodels.FriendInfo{}
+			if friend, exist := friendMap[admin.AdminId]; exist {
+				friendInfo.IsFriend = friend.IsFriend
+				friendInfo.DisplayName = friend.DisplayName
+			}
+			ret.Items = append(ret.Items, &apimodels.GroupMemberInfo{
+				UserId:         admin.AdminId,
+				Nickname:       admin.Nickname,
+				Avatar:         admin.UserPortrait,
+				GrpDisplayName: admin.GrpDisplayName,
+				MemberType:     admin.UserType,
+				Role:           apimodels.GrpMemberRole_GrpAdmin,
+				FriendInfo:     friendInfo,
+			})
 		}
 	}
 	return errs.IMErrorCode_SUCCESS, ret
