@@ -14,7 +14,7 @@ type AppConfig struct {
 	Log struct {
 		LogPath string `yaml:"logPath"`
 		LogName string `yaml:"logName"`
-	} `ymal:"log"`
+	} `yaml:"log"`
 
 	Mysql struct {
 		User     string `yaml:"user"`
