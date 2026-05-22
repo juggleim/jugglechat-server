@@ -9,6 +9,7 @@ import (
 	"github.com/juggleim/jugglechat-server/commons/ctxs"
 	"github.com/juggleim/jugglechat-server/commons/errs"
 	"github.com/juggleim/jugglechat-server/commons/imsdk"
+	"github.com/juggleim/jugglechat-server/commons/tools"
 	utils "github.com/juggleim/jugglechat-server/commons/tools"
 	"github.com/juggleim/jugglechat-server/storages"
 	"github.com/juggleim/jugglechat-server/storages/models"
@@ -810,26 +811,27 @@ func SetGroupHisMsgVisible(ctx context.Context, req *apimodels.SetGroupHisMsgVis
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	//TODO check right
 	visible := req.GroupHisMsgVisible
-	hideGrpMsg := "1"
+	var hideGrpMsg int64 = 1
 	if visible > 0 {
-		hideGrpMsg = "0"
+		hideGrpMsg = 0
 	} else {
-		hideGrpMsg = "1"
+		hideGrpMsg = 1
 	}
 	storage := storages.NewGroupExtStorage()
 	storage.Upsert(models.GroupExt{
 		GroupId:   req.GroupId,
 		ItemKey:   apimodels.AttItemKey_HideGrpMsg,
-		ItemValue: hideGrpMsg,
+		ItemValue: tools.Int2String(hideGrpMsg),
 		ItemType:  apimodels.AttItemType_Setting,
 		AppKey:    appkey,
 	})
 	//sync to imserver
 	if sdk := imsdk.GetImSdk(appkey); sdk != nil {
-		sdk.SetGroupSettings(juggleimsdk.GroupInfo{
+		sdk.SetGroupSettings(juggleimsdk.SetGroupSettingReq{})
+		sdk.SetGroupSettings(juggleimsdk.SetGroupSettingReq{
 			GroupId: req.GroupId,
-			Settings: map[string]string{
-				apimodels.AttItemKey_HideGrpMsg: hideGrpMsg,
+			Settings: &juggleimsdk.GroupSettings{
+				HideGrpMsg: tools.Int64Ptr(hideGrpMsg),
 			},
 		})
 	}

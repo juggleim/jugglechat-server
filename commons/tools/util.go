@@ -70,6 +70,10 @@ func IntPtr(i int) *int {
 	return &i
 }
 
+func Int64Ptr(i int64) *int64 {
+	return &i
+}
+
 func String2Int64(str string) (int64, error) {
 	return strconv.ParseInt(str, 10, 64)
 }
