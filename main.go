@@ -12,6 +12,8 @@ import (
 	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/log"
 	"github.com/juggleim/jugglechat-server/routers"
+
+	aiRouters "github.com/juggleim/jugglechat-server-ai/routers"
 )
 
 func main() {
@@ -31,7 +33,8 @@ func main() {
 	dbcommons.Upgrade()
 
 	httpServer := gin.Default()
-	routers.Route(httpServer, "jim")
+	grp := routers.Route(httpServer, "jim")
+	aiRouters.Route(grp)
 	go httpServer.Run(fmt.Sprintf(":%d", configures.Config.Port))
 
 	//start admin
