@@ -7,13 +7,10 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
-	adminRouters "github.com/juggleim/jugglechat-server/admins/routers"
 	"github.com/juggleim/jugglechat-server/commons/configures"
 	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/log"
 	"github.com/juggleim/jugglechat-server/routers"
-
-	aiRouters "github.com/juggleim/jugglechat-server-ai/routers"
 )
 
 func main() {
@@ -33,17 +30,8 @@ func main() {
 	dbcommons.Upgrade()
 
 	httpServer := gin.Default()
-	grp := routers.Route(httpServer, "jim")
-	aiRouters.Route(grp)
+	routers.Route(httpServer, "jim")
 	go httpServer.Run(fmt.Sprintf(":%d", configures.Config.Port))
-
-	//start admin
-	adminServer := gin.Default()
-	group := adminRouters.RouteLogin(adminServer, "admingateway")
-	adminRouters.RouteProxy(group)
-	adminRouters.Route(group)
-	adminRouters.LoadJuggleChatAdminWeb(adminServer)
-	go adminServer.Run(fmt.Sprintf(":%d", configures.Config.AdminPort))
 
 	closeChan := make(chan struct{})
 	sigChan := make(chan os.Signal, 1)
