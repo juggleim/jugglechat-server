@@ -109,6 +109,7 @@ func Register(ctx *gin.Context) {
 			responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 			return
 		}
+		nickname = req.Account
 		err = storage.Create(dbModels.User{
 			UserId:       userId,
 			Nickname:     nickname,
