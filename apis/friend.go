@@ -93,7 +93,7 @@ func SearchFriends(ctx *gin.Context) {
 		return
 	}
 	if services.CheckApiBlockByVersion(ctxs.ToCtx(ctx)) {
-		responses.SuccessHttpResp(ctx, &models.Users{})
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_FORBIDDEN)
 		return
 	}
 	code, resp := services.SearchFriends(ctxs.ToCtx(ctx), &req)
@@ -143,7 +143,7 @@ func ApplyFriend(ctx *gin.Context) {
 		return
 	}
 	if services.CheckApiBlockByVersion(ctxs.ToCtx(ctx)) {
-		responses.SuccessHttpResp(ctx, nil)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_FORBIDDEN)
 		return
 	}
 	code := services.ApplyFriend(ctxs.ToCtx(ctx), &models.ApplyFriend{

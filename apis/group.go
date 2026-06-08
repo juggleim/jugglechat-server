@@ -246,7 +246,7 @@ func SearchGroupMembers(ctx *gin.Context) {
 		return
 	}
 	if services.CheckApiBlockByVersion(ctxs.ToCtx(ctx)) {
-		responses.SuccessHttpResp(ctx, &models.GroupMemberInfos{})
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_FORBIDDEN)
 		return
 	}
 	code, resp := services.SearchGroupMembers(ctxs.ToCtx(ctx), &req)

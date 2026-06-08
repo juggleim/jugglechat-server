@@ -30,6 +30,7 @@ var (
 	IMErrorCode_APP_EMAIL_EXIST         IMErrorCode = 17015
 	IMErrorCode_APP_Sensitive           IMErrorCode = 17016
 	IMErrorCode_APP_ParamError          IMErrorCode = 17017
+	IMErrorCode_APP_FORBIDDEN           IMErrorCode = 17018
 
 	//friends
 	IMErrorCode_APP_FRIEND_DEFAULT         IMErrorCode = 17100
