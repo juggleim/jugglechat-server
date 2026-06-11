@@ -9,8 +9,11 @@ import (
 
 func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	eng.Use(corsHandler())
+
 	group := eng.Group("/" + prefix)
 	group.Use(apis.Validate)
+
+	group.GET("/serverinfos", apis.GetServerInfo)
 
 	group.POST("/login", apis.Login)
 	group.POST("/register", apis.Register)

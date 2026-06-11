@@ -24,7 +24,11 @@ func Validate(ctx *gin.Context) {
 	session := utils.GenerateUUIDShort11()
 	ctx.Header(Header_RequestId, session)
 	ctx.Set(string(ctxs.CtxKey_Session), session)
-
+	//&& urlPath != "/jim/serverinfos"
+	urlPath := ctx.Request.URL.Path
+	if urlPath == "/jim/serverinfos" {
+		return
+	}
 	//check appkey
 	appkey := ctx.Request.Header.Get(Header_AppKey)
 	if appkey == "" {
@@ -44,7 +48,7 @@ func Validate(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
-	urlPath := ctx.Request.URL.Path
+
 	if urlPath != "/jim/login" && urlPath != "/jim/register" && urlPath != "/jim/sms/send" && urlPath != "/jim/sms_login" && urlPath != "/jim/sms/login" && urlPath != "/jim/email/send" && urlPath != "/jim/email/login" && urlPath != "/jim/login/qrcode" && urlPath != "/jim/login/qrcode/check" {
 		//current userId
 		tokenStr := ctx.Request.Header.Get(Header_Authorization)
