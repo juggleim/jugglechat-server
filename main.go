@@ -31,6 +31,7 @@ func main() {
 
 	httpServer := gin.Default()
 	routers.Route(httpServer, "jim")
+	routers.LoadWebIM(httpServer)
 	go httpServer.Run(fmt.Sprintf(":%d", configures.Config.Port))
 
 	closeChan := make(chan struct{})

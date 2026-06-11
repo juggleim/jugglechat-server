@@ -37,11 +37,19 @@ func GetServerInfo(ctx *gin.Context) {
 			return
 		}
 	}
+	imservers := []string{}
+	appservers := []string{}
+	if app.WsUrl != "" {
+		imservers = append(imservers, app.WsUrl)
+	}
+	if app.AppUrl != "" {
+		appservers = append(appservers, app.AppUrl)
+	}
 	responses.SuccessHttpResp(ctx, map[string]string{
 		"server_info_plain": tools.ToJson(&ServerInfo{
 			AppKey:     app.AppKey,
-			ImServers:  []string{app.WsUrl},
-			AppServers: []string{app.AppUrl},
+			ImServers:  imservers,
+			AppServers: appservers,
 		}),
 	})
 }
