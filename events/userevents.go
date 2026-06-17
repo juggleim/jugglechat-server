@@ -2,7 +2,7 @@ package events
 
 import "github.com/juggleim/jugglechat-server/storages/models"
 
-type UserRegisteEvent func(user models.User)
+type UserRegisteEvent func(appkey string, user models.User)
 
 var userRegisteEvents []UserRegisteEvent
 
@@ -14,8 +14,8 @@ func RegisteUserRegisteEvent(event UserRegisteEvent) {
 	userRegisteEvents = append(userRegisteEvents, event)
 }
 
-func TriggerUserRegiste(user models.User) {
+func TriggerUserRegiste(appkey string, user models.User) {
 	for _, event := range userRegisteEvents {
-		event(user)
+		event(appkey, user)
 	}
 }

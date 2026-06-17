@@ -32,8 +32,7 @@ func init() {
 	events.RegisteUserRegisteEvent(JoinFeedbackGroup)
 }
 
-func Welcome(user models.User) {
-	appkey := user.AppKey
+func Welcome(appkey string, user models.User) {
 	if appkey != "" {
 		sdk := imsdk.GetImSdk(appkey)
 		if sdk != nil {
@@ -58,8 +57,7 @@ func Welcome(user models.User) {
 	}
 }
 
-func JoinFeedbackGroup(user models.User) {
-	appkey := user.AppKey
+func JoinFeedbackGroup(appkey string, user models.User) {
 	if appkey != "" {
 		appInfo, exist := appinfos.GetAppInfo(appkey)
 		if exist && appInfo != nil {
