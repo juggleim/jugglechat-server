@@ -181,6 +181,8 @@ github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHm
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/juggleim/imserver-sdk-go v1.0.14 h1:S9NHMHFW7GvpsPw/A+8XhBy9d7uHE6YQdEBSvj9Ht3k=
 github.com/juggleim/imserver-sdk-go v1.0.14/go.mod h1:lHWG8Xl6/SvuH7mT+nnz1prkMzrkX96oHjyguvVthUI=
+github.com/juggleim/imserver-sdk-go v1.0.15 h1:nmgxdRxTRlJTAMUpUKyy5jnusiVYVM11rNPxFi6LwhI=
+github.com/juggleim/imserver-sdk-go v1.0.15/go.mod h1:lHWG8Xl6/SvuH7mT+nnz1prkMzrkX96oHjyguvVthUI=
 github.com/klauspost/compress v1.18.0 h1:c/Cqfb0r+Yi+JtIEq73FWXVkRonBlf0CRNYc8Zttxdo=
 github.com/klauspost/compress v1.18.0/go.mod h1:2Pp+KzxcywXVXMr50+X0Q/Lsb43OQHYWRCY2AiWywWQ=
 github.com/klauspost/cpuid/v2 v2.0.1/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=

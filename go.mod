@@ -9,7 +9,7 @@ require (
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.6
 	github.com/aliyun/credentials-go v1.4.6
 	github.com/go-mail/mail/v2 v2.3.0
-	github.com/juggleim/imserver-sdk-go v1.0.14
+	github.com/juggleim/imserver-sdk-go v1.0.15
 )
 
 require (

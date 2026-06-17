@@ -25,8 +25,9 @@ type AppConfig struct {
 
 	ImApiDomain string `yaml:"imApiDomain"`
 
-	CallbackBaseUrl  string `yaml:"callbackBaseUrl"`
-	AiBotCallbackUrl string `yaml:"aiBotCallbackUrl"`
+	CallbackBaseUrl   string `yaml:"callbackBaseUrl"`
+	AiBotCallbackUrl  string `yaml:"aiBotCallbackUrl"`
+	AssistantAgentUrl string `yaml:"assistantAgentUrl"`
 
 	BotConnector struct {
 		Domain string `yaml:"domain"`
