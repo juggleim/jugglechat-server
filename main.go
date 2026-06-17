@@ -33,6 +33,11 @@ func main() {
 	routers.Route(httpServer, "jim")
 	routers.LoadWebIM(httpServer)
 	go httpServer.Run(fmt.Sprintf(":%d", configures.Config.Port))
+	if configures.Config.CallbackPort > 0 {
+		callbackServer := gin.Default()
+		routers.CallbackRoute(callbackServer, "callback")
+		go callbackServer.Run(fmt.Sprintf(":%d", configures.Config.CallbackPort))
+	}
 
 	closeChan := make(chan struct{})
 	sigChan := make(chan os.Signal, 1)
