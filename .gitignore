@@ -16,4 +16,4 @@
 
 logs/*
 
-conf/*.yml
+conf/config.yml
