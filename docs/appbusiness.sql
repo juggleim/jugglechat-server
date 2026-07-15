@@ -28,8 +28,8 @@ CREATE TABLE IF NOT EXISTS `appnavs` (
   `api_url` VARCHAR(200) NULL,
   `ws_url` VARCHAR(200) NULL,
   `app_url` VARCHAR(200) NULL,
-  `created_time` DATETIME(3) NULL,
-  `updated_time` DATETIME(3) NULL,
+  `created_time` DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_time` DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`),
   UNIQUE INDEX `app_key_UNIQUE` (`app_key`),
   UNIQUE INDEX `alias_no_UNIQUE` (`alias_no`)
