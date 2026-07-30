@@ -36,10 +36,20 @@ type FriendInfo struct {
 }
 
 type UserSettings struct {
-	Language         string `json:"language"`
-	FriendVerifyType int    `json:"friend_verify_type"`
-	GrpVerifyType    int    `json:"grp_verify_type"`
-	Undisturb        string `json:"undisturb"`
+	Language         string            `json:"language"`
+	FriendVerifyType int               `json:"friend_verify_type"`
+	GrpVerifyType    int               `json:"grp_verify_type"`
+	Undisturb        string            `json:"undisturb"`
+	Exts             map[string]string `json:"exts,omitempty"`
+}
+
+// IsReservedUserExtKey 判断 item_key 是否为内置字段，内置字段有专属的 settings 入参，不允许通过 exts 覆盖
+func IsReservedUserExtKey(itemKey string) bool {
+	switch itemKey {
+	case UserExtKey_Phone, UserExtKey_Language, UserExtKey_Undisturb, UserExtKey_FriendVerifyType, UserExtKey_GrpVerifyType:
+		return true
+	}
+	return false
 }
 
 type Users struct {

@@ -288,6 +288,18 @@ func UpdateUserSettings(ctx context.Context, req *apimodels.UserSettings) errs.I
 		ItemType:  apimodels.AttItemType_Setting,
 		AppKey:    appkey,
 	})
+	for itemKey, itemValue := range req.Exts {
+		if itemKey == "" || apimodels.IsReservedUserExtKey(itemKey) {
+			continue
+		}
+		storage.Upsert(models.UserExt{
+			UserId:    requestId,
+			ItemKey:   itemKey,
+			ItemValue: itemValue,
+			ItemType:  apimodels.AttItemType_Setting,
+			AppKey:    appkey,
+		})
+	}
 	//sync to im
 	if len(settings) > 0 {
 		if sdk := imsdk.GetImSdk(appkey); sdk != nil {
