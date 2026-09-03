@@ -26,7 +26,7 @@ func Validate(ctx *gin.Context) {
 	ctx.Set(string(ctxs.CtxKey_Session), session)
 	//&& urlPath != "/jim/serverinfos"
 	urlPath := ctx.Request.URL.Path
-	if urlPath == "/jim/serverinfos" {
+	if urlPath == "/jim/serverinfos" || urlPath == "/jim/servers/info" || urlPath == "/jim/servers/list" {
 		return
 	}
 	//check appkey
