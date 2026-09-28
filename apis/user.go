@@ -62,6 +62,20 @@ func UpdateUser(ctx *gin.Context) {
 	responses.SuccessHttpResp(ctx, nil)
 }
 
+func DelUser(ctx *gin.Context) {
+	req := &models.UserObj{}
+	if err := ctx.BindJSON(req); err != nil || req.UserId == "" {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code := services.DelUser(ctxs.ToCtx(ctx), req.UserId)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, nil)
+}
+
 func UpdatePass(ctx *gin.Context) {
 	req := &models.UpdUserPassReq{}
 	if err := ctx.BindJSON(req); err != nil || req.UserId == "" || req.Password == "" || req.NewPassword == "" {

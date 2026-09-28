@@ -32,6 +32,7 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.GET("/syncconfs", apis.SyncConfs)
 
 	group.POST("/users/update", apis.UpdateUser)
+	group.POST("/users/del", apis.DelUser)
 	group.POST("/users/updpass", apis.UpdatePass)
 	group.POST("/users/updsettings", apis.UpdateUserSettings)
 	group.POST("/users/bindemail/send", apis.BindEmailSendEmail)

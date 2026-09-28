@@ -35,6 +35,7 @@ type FriendInfo struct {
 type IUserStorage interface {
 	Create(item User) error
 	Upsert(item User) error
+	Delete(appkey, userId string) error
 	FindByPhone(appkey, phone string) (*User, error)
 	FindByEmail(appkey, email string) (*User, error)
 	FindByAccount(appkey, account string) (*User, error)

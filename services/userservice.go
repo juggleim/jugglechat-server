@@ -232,6 +232,19 @@ func UpdateUser(ctx context.Context, req *apimodels.UserObj) errs.IMErrorCode {
 	return errs.IMErrorCode_SUCCESS
 }
 
+func DelUser(ctx context.Context, userId string) errs.IMErrorCode {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	requestId := ctxs.GetRequesterIdFromCtx(ctx)
+	if requestId == "" || userId != requestId {
+		return errs.IMErrorCode_APP_FORBIDDEN
+	}
+	storage := storages.NewUserStorage()
+	if err := storage.Delete(appkey, requestId); err != nil {
+		return errs.IMErrorCode_APP_DEFAULT
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
 func UpdatePass(ctx context.Context, req *apimodels.UpdUserPassReq) errs.IMErrorCode {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	storage := storages.NewUserStorage()

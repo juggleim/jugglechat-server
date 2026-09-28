@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
 	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 	utils "github.com/juggleim/jugglechat-server/commons/tools"
 	"github.com/juggleim/jugglechat-server/storages/models"
+	"gorm.io/gorm"
 )
 
 type UserDao struct {
@@ -236,6 +236,10 @@ func (user UserDao) Create(item models.User) error {
 
 func (user UserDao) Upsert(item models.User) error {
 	return dbcommons.GetDb().Exec(fmt.Sprintf("INSERT INTO %s (user_id,user_type,nickname,user_portrait,app_key)VALUES(?,?,?,?,?) ON DUPLICATE KEY UPDATE nickname=?,user_portrait=?", user.TableName()), item.UserId, item.UserType, item.Nickname, item.UserPortrait, item.AppKey, item.Nickname, item.UserPortrait).Error
+}
+
+func (user UserDao) Delete(appkey, userId string) error {
+	return dbcommons.GetDb().Where("app_key=? and user_id=?", appkey, userId).Delete(&UserDao{}).Error
 }
 
 func (user UserDao) Update(appkey, userId, nickname, userPortrait string) error {
