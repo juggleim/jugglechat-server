@@ -153,9 +153,8 @@ Build once and deliver a consistent chat experience across platforms:
 | Platform | Repository |
 | --- | --- |
 | Web | [jugglechat-web](https://github.com/juggleim/jugglechat-web) |
-| Desktop | [jugglechat-desktop](https://github.com/juggleim/jugglechat-desktop) |
-| Android | [jugglechat-android](https://github.com/juggleim/jugglechat-android) |
-| iOS | [jugglechat-ios](https://github.com/juggleim/jugglechat-ios) |
+| Android | [android-demo](https://github.com/juggleim/imsdk-android/tree/master/demo) |
+| iOS | [iOS-demo](https://github.com/juggleim/imsdk-ios/tree/master/QuickStart) |
 
 ## Project structure
 
