@@ -18,3 +18,4 @@ logs/*
 
 conf/config.yml
 .opencode/*
+opencode.jsonc
