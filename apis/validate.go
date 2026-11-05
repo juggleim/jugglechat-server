@@ -2,6 +2,7 @@ package apis
 
 import (
 	"strings"
+	"time"
 
 	"github.com/juggleim/jugglechat-server/commons/appinfos"
 	"github.com/juggleim/jugglechat-server/commons/ctxs"
@@ -9,6 +10,7 @@ import (
 	"github.com/juggleim/jugglechat-server/commons/responses"
 	utils "github.com/juggleim/jugglechat-server/commons/tools"
 	"github.com/juggleim/jugglechat-server/services"
+	"github.com/juggleim/jugglechat-server/services/deviceauth"
 
 	"github.com/gin-gonic/gin"
 )
@@ -58,26 +60,52 @@ func Validate(ctx *gin.Context) {
 			return
 		}
 		if strings.HasPrefix(tokenStr, "Bearer ") {
+			if !deviceauth.Allowed("api_key", urlPath, deviceauth.Required(appkey, time.Now().UnixMilli())) {
+				deviceError(ctx, deviceauth.ErrAuth, nil)
+				ctx.Abort()
+				return
+			}
 			tokenStr = tokenStr[7:]
 			if !services.CheckApiKey(tokenStr, appkey, appInfo.AppSecureKey) {
 				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 				ctx.Abort()
 				return
 			}
+		} else if strings.HasPrefix(tokenStr, "svc") {
+			claims, err := deviceauth.VerifyService(tokenStr, []byte(appInfo.AppSecureKey), appkey, urlPath, time.Now().UnixMilli())
+			if err != nil {
+				deviceError(ctx, deviceauth.ErrAuth, nil)
+				ctx.Abort()
+				return
+			}
+			ctx.Set(string(ctxs.CtxKey_RequesterId), claims.UserID)
+		} else if strings.HasPrefix(tokenStr, "ds") {
+			claims, err := deviceauth.Verify(tokenStr, []byte(appInfo.AppSecureKey), appkey)
+			if err == nil {
+				err = deviceStore().Authenticate(ctx.Request.Context(), claims, time.Now().UnixMilli())
+			}
+			if err != nil {
+				deviceError(ctx, deviceauth.ErrAuth, nil)
+				ctx.Abort()
+				return
+			}
+			ctx.Set("device_session", claims)
+			ctx.Set(string(ctxs.CtxKey_RequesterId), claims.UserID)
 		} else {
 			authToken, err := services.ParseTokenString(tokenStr)
-			if err != nil {
+			if err != nil || authToken.Appkey != appkey {
 				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 				ctx.Abort()
 				return
 			}
 			token, err := services.ParseToken(authToken, []byte(appInfo.AppSecureKey))
-			if err != nil {
+			if err != nil || token.DeviceId != "" || !deviceauth.Allowed("legacy", urlPath, deviceauth.Required(appkey, time.Now().UnixMilli())) {
 				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 				ctx.Abort()
 				return
 			}
 			ctx.Set(string(ctxs.CtxKey_RequesterId), token.UserId)
+			deviceauth.LegacyAuthentications.Add(1)
 		}
 	}
 }

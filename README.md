@@ -146,6 +146,8 @@ All business endpoints use the `/jim` prefix.
 
 See [`routers/router.go`](routers/router.go) for the complete route list.
 
+For frontend integration, see [Login and Device Management API (Chinese)](docs/login-device-api.zh-CN.md): login flows, device compatibility, device listing/removal, response formats, and error codes.
+
 ## Client apps
 
 Build once and deliver a consistent chat experience across platforms:

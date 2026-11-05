@@ -148,6 +148,8 @@ sh build.sh
 
 完整路由列表请查看 [`routers/router.go`](routers/router.go)。
 
+前端接入请查看[登录与设备管理 API（中文）](docs/login-device-api.zh-CN.md)，包含密码/短信/邮箱/二维码登录、设备字段兼容、设备列表与删除、响应和错误码。
+
 ## 全平台客户端
 
 使用官方客户端，为不同平台提供一致的聊天体验：
