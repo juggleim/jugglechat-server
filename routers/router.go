@@ -27,6 +27,8 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.POST("/sms/login", apis.SmsLogin)
 	group.POST("/email/send", apis.EmailSend)
 	group.POST("/email/login", apis.EmailLogin)
+	group.GET("/devices/list", apis.ListDevices)
+	group.POST("/devices/del", apis.DeleteDevice)
 	group.POST("/file_cred", apis.GetFileCred)
 	group.POST("/translate", apis.Translate)
 	group.GET("/syncconfs", apis.SyncConfs)

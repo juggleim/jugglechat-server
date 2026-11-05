@@ -7,6 +7,7 @@ import (
 	"regexp"
 
 	"github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/commons/appinfos"
 	"github.com/juggleim/jugglechat-server/commons/ctxs"
 	"github.com/juggleim/jugglechat-server/commons/errs"
 	"github.com/juggleim/jugglechat-server/commons/imsdk"
@@ -14,6 +15,7 @@ import (
 	utils "github.com/juggleim/jugglechat-server/commons/tools"
 	"github.com/juggleim/jugglechat-server/events"
 	"github.com/juggleim/jugglechat-server/services"
+	"github.com/juggleim/jugglechat-server/services/deviceauth"
 	"github.com/juggleim/jugglechat-server/storages"
 	dbModels "github.com/juggleim/jugglechat-server/storages/models"
 
@@ -73,11 +75,16 @@ func Login(ctx *gin.Context) {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode(code))
 		return
 	}
+	authorization, tokenErr := issueLogin(ctx, user.UserId, req.DeviceParams)
+	if tokenErr != nil {
+		deviceError(ctx, tokenErr, nil)
+		return
+	}
 	responses.SuccessHttpResp(ctx, &models.LoginUserResp{
 		UserId:        user.UserId,
 		NickName:      user.Nickname,
 		Avatar:        user.UserPortrait,
-		Authorization: services.GenerateToken(appkey, user.UserId),
+		Authorization: authorization,
 		ImToken:       resp.Token,
 	})
 }
@@ -248,11 +255,16 @@ func SmsLogin(ctx *gin.Context) {
 			return
 		}
 
+		authorization, tokenErr := issueLogin(ctx, userId, req.DeviceParams)
+		if tokenErr != nil {
+			deviceError(ctx, tokenErr, nil)
+			return
+		}
 		responses.SuccessHttpResp(ctx, &models.LoginUserResp{
 			UserId:        userId,
 			NickName:      nickname,
 			Avatar:        userPortrait,
-			Authorization: services.GenerateToken(appkey, userId),
+			Authorization: authorization,
 			ImToken:       resp.Token,
 		})
 	} else {
@@ -340,11 +352,16 @@ func EmailLogin(ctx *gin.Context) {
 			return
 		}
 
+		authorization, tokenErr := issueLogin(ctx, userId, req.DeviceParams)
+		if tokenErr != nil {
+			deviceError(ctx, tokenErr, nil)
+			return
+		}
 		responses.SuccessHttpResp(ctx, &models.LoginUserResp{
 			UserId:        userId,
 			NickName:      nickname,
 			Avatar:        userportrait,
-			Authorization: services.GenerateToken(appkey, userId),
+			Authorization: authorization,
 			ImToken:       resp.Token,
 		})
 	} else {
@@ -367,15 +384,15 @@ func GenerateQrCode(ctx *gin.Context) {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_DEFAULT)
 		return
 	}
-	storage := storages.NewQrCodeRecordStorage()
-	storage.Create(dbModels.QrCodeRecord{
-		CodeId:      uuidStr,
-		AppKey:      ctx.GetString(string(ctxs.CtxKey_AppKey)),
-		CreatedTime: time.Now().UnixMilli(),
-	})
+	secret, err := deviceStore().CreateQR(ctx.Request.Context(), ctx.GetString(string(ctxs.CtxKey_AppKey)), uuidStr, time.Now().UnixMilli())
+	if err != nil {
+		deviceError(ctx, err, nil)
+		return
+	}
 	responses.SuccessHttpResp(ctx, map[string]string{
-		"id":      uuidStr,
-		"qr_code": base64.StdEncoding.EncodeToString(buf.Bytes()),
+		"id":          uuidStr,
+		"poll_secret": secret,
+		"qr_code":     base64.StdEncoding.EncodeToString(buf.Bytes()),
 	})
 }
 
@@ -385,19 +402,20 @@ func CheckQrCode(ctx *gin.Context) {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	storage := storages.NewQrCodeRecordStorage()
-	record, err := storage.FindById(ctx.GetString(string(ctxs.CtxKey_AppKey)), req.Id)
-	if err != nil {
-		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_DEFAULT)
-		return
-	}
-	if time.Now().UnixMilli()-record.CreatedTime > 10*60*1000 {
-		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_QRCODE_EXPIRED)
-		return
-	}
 	appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
-	if record.Status == dbModels.QrCodeRecordStatus_OK {
-		userId := record.UserId
+	record, err := deviceStore().PrepareQR(ctx.Request.Context(), appkey, req.Id, req.DeviceParams, req.PollSecret, time.Now().UnixMilli())
+	if err != nil {
+		deviceError(ctx, err, nil)
+		return
+	}
+	info, ok := appinfos.GetAppInfo(appkey)
+	if !ok {
+		deviceError(ctx, deviceauth.ErrAuth, nil)
+		return
+	}
+	prepared := deviceauth.LoginResult{UserID: record.UserID}
+	if record.Status == "confirmed" {
+		userId := record.UserID
 		userStorage := storages.NewUserStorage()
 		user, err := userStorage.FindByUserId(appkey, userId)
 		if err != nil || user == nil {
@@ -422,17 +440,16 @@ func CheckQrCode(ctx *gin.Context) {
 			responses.ErrorHttpResp(ctx, errs.IMErrorCode(code))
 			return
 		}
-		responses.SuccessHttpResp(ctx, &models.LoginUserResp{
-			UserId:        userId,
-			NickName:      user.Nickname,
-			Avatar:        user.UserPortrait,
-			Authorization: services.GenerateToken(appkey, userId),
-			ImToken:       resp.Token,
-		})
-	} else if record.Status == dbModels.QrCodeRecordStatus_Default {
-		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_CONTINUE)
+		prepared = deviceauth.LoginResult{UserID: userId, Nickname: user.Nickname, Avatar: user.UserPortrait, IMToken: resp.Token}
+	}
+	result, err := deviceStore().RedeemQR(ctx.Request.Context(), appkey, req.Id, req.DeviceParams, req.PollSecret, []byte(info.AppSecureKey), time.Now().UnixMilli(), prepared, func(user string) (string, error) {
+		return legacyLoginToken(appkey, user, []byte(info.AppSecureKey), time.Now().UnixMilli())
+	})
+	if err != nil {
+		deviceError(ctx, err, nil)
 		return
 	}
+	responses.SuccessHttpResp(ctx, result)
 }
 
 func ConfirmQrCode(ctx *gin.Context) {
@@ -443,8 +460,7 @@ func ConfirmQrCode(ctx *gin.Context) {
 	}
 	appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
 	userId := ctx.GetString(string(ctxs.CtxKey_RequesterId))
-	storage := storages.NewQrCodeRecordStorage()
-	err := storage.UpdateStatus(appkey, req.Id, dbModels.QrCodeRecordStatus_OK, userId)
+	err := deviceStore().ConfirmQR(ctx.Request.Context(), appkey, req.Id, userId, time.Now().UnixMilli())
 	if err != nil {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_DEFAULT)
 		return

@@ -21,7 +21,7 @@ type CountResult struct {
 	Count int64 `gorm:"count"`
 }
 
-func Upgrade() {
+func Upgrade() error {
 	// upgrade jchat db
 	var currVersion int64 = 0
 	dao := GlobalConfDao{}
@@ -57,14 +57,19 @@ func Upgrade() {
 				err := executeSqlFile(sqlFileName)
 				if err == nil {
 					fmt.Println("[DbMigration]execute sql file success:", sqlFileName)
-					dao.Upsert(GlobalConfDao{
+					if err := dao.Upsert(GlobalConfDao{
 						ConfKey:   JChatDbVersionKey,
 						ConfValue: fmt.Sprintf("%d", ver),
-					})
+					}); err != nil {
+						return err
+					}
+				} else {
+					return err
 				}
 			}
 		}
 	}
+	return err
 }
 
 func executeSqlFile(fileName string) error {
@@ -75,7 +80,15 @@ func executeSqlFile(fileName string) error {
 	}
 	defer sqlFile.Close()
 
-	scanner := bufio.NewScanner(sqlFile)
+	b, err := sqlFs.ReadFile(fileName)
+	if err != nil {
+		return err
+	}
+	return runSQLStatements(string(b), func(query string) error { return GetDb().Exec(query).Error })
+}
+
+func runSQLStatements(content string, execute func(string) error) error {
+	scanner := bufio.NewScanner(strings.NewReader(content))
 	var queryBuilder strings.Builder
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -87,12 +100,18 @@ func executeSqlFile(fileName string) error {
 		if strings.HasSuffix(line, ";") {
 			query := strings.TrimSpace(queryBuilder.String())
 			if query != "" {
-				if err := GetDb().Exec(query).Error; err != nil {
-					fmt.Println("[DbMigration_Err]Execute sql error:", err, query)
+				if err := execute(query); err != nil {
+					return err
 				}
 			}
 			queryBuilder.Reset()
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+	if strings.TrimSpace(queryBuilder.String()) != "" {
+		return fmt.Errorf("unterminated migration statement")
 	}
 	return nil
 }

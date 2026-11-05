@@ -1,16 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juggleim/jugglechat-server/commons/configures"
 	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/log"
 	"github.com/juggleim/jugglechat-server/routers"
+	"github.com/juggleim/jugglechat-server/services/deviceauth"
 )
 
 func main() {
@@ -27,7 +30,27 @@ func main() {
 		return
 	}
 	//upgrade db
-	dbcommons.Upgrade()
+	if err := dbcommons.Upgrade(); err != nil {
+		log.Error("Database migration failed", err)
+		return
+	}
+	workerCtx, stopWorker := context.WithCancel(context.Background())
+	defer stopWorker()
+	go func() {
+		store := deviceauth.Store{DB: dbcommons.GetDb(), IM: deviceauth.ConfiguredIM()}
+		ticker := time.NewTicker(15 * time.Second)
+		defer ticker.Stop()
+		for {
+			if err := store.Recover(workerCtx, time.Now().UnixMilli()); err != nil && workerCtx.Err() == nil {
+				log.Error("Device revocation recovery database error", err)
+			}
+			select {
+			case <-workerCtx.Done():
+				return
+			case <-ticker.C:
+			}
+		}
+	}()
 
 	httpServer := gin.Default()
 	routers.Route(httpServer, "jim")

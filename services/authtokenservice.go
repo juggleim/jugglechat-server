@@ -78,6 +78,9 @@ func ParseTokenString(tokenStr string) (*pbobjs.AuthToken, error) {
 }
 
 func ParseToken(tokenWrap *pbobjs.AuthToken, secureKey []byte) (ImToken, error) {
+	if tokenWrap == nil || len(tokenWrap.TokenValue) == 0 || len(tokenWrap.TokenValue)%16 != 0 {
+		return ImToken{}, errors.New("invalid token ciphertext")
+	}
 	token := ImToken{
 		AppKey: tokenWrap.Appkey,
 	}
