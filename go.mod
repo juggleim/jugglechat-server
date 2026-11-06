@@ -3,10 +3,11 @@ module github.com/juggleim/jugglechat-server
 go 1.23.2
 
 require (
-	github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.11
+	github.com/alibabacloud-go/darabonba-openapi/v2 v2.2.2
 	github.com/alibabacloud-go/dm-20151123/v2 v2.3.0
-	github.com/alibabacloud-go/tea v1.2.2
-	github.com/alibabacloud-go/tea-utils/v2 v2.0.6
+	github.com/alibabacloud-go/dysmsapi-20170525/v5 v5.6.0
+	github.com/alibabacloud-go/tea v1.5.1
+	github.com/alibabacloud-go/tea-utils/v2 v2.0.9
 	github.com/aliyun/credentials-go v1.4.6
 	github.com/go-mail/mail/v2 v2.3.0
 	github.com/juggleim/imserver-sdk-go v1.0.16
@@ -28,13 +29,14 @@ require (
 	github.com/alibabacloud-go/tea-utils v1.4.5 // indirect
 	github.com/alibabacloud-go/tea-xml v1.1.3 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
-	github.com/clbanning/mxj/v2 v2.5.5 // indirect
+	github.com/clbanning/mxj/v2 v2.7.0 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gammazero/toposort v0.1.1 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
@@ -66,7 +68,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
-	github.com/go-sql-driver/mysql v1.9.3 // indirect
+	github.com/go-sql-driver/mysql v1.9.3
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/golang-lru v1.0.2

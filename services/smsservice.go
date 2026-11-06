@@ -58,7 +58,7 @@ func SmsSend(ctx context.Context, phone string) errs.IMErrorCode {
 			return errs.IMErrorCode_SUCCESS
 		}
 	}
-	return errs.IMErrorCode_SUCCESS
+	return errs.IMErrorCode_APP_SMS_SEND_FAILED
 }
 
 func CheckPhoneSmsCode(ctx context.Context, phone, code string) errs.IMErrorCode {
@@ -100,11 +100,8 @@ func loadSmsEngine(appInfo *appinfos.AppInfo) {
 		smsConf := &SmsEngineConf{}
 		err := utils.JsonUnMarshal([]byte(ext.AppItemValue), smsConf)
 		if err == nil {
-			if smsConf.Channel == "baidu" && smsConf.BdSmsEngine != nil && smsConf.BdSmsEngine.ApiKey != "" && smsConf.BdSmsEngine.SecretKey != "" {
-				appInfo.SmsEngine = smsConf.BdSmsEngine
-				return
-			} else if smsConf.Channel == "smsbao" && smsConf.SmsBaoEngine != nil && smsConf.SmsBaoEngine.Username != "" && smsConf.SmsBaoEngine.Password != "" && smsConf.SmsBaoEngine.Template != "" {
-				appInfo.SmsEngine = smsConf.SmsBaoEngine
+			if smsEngine := smsConf.Engine(); smsEngine != nil {
+				appInfo.SmsEngine = smsEngine
 				return
 			}
 		}
@@ -113,7 +110,29 @@ func loadSmsEngine(appInfo *appinfos.AppInfo) {
 }
 
 type SmsEngineConf struct {
-	Channel      string                   `json:"channel,omitempty"`
-	BdSmsEngine  *smsengines.BdSmsEngine  `json:"baidu,omitempty"`
-	SmsBaoEngine *smsengines.SmsBaoEngine `json:"smsbao,omitempty"`
+	Channel         string                      `json:"channel,omitempty"`
+	BdSmsEngine     *smsengines.BdSmsEngine     `json:"baidu,omitempty"`
+	SmsBaoEngine    *smsengines.SmsBaoEngine    `json:"smsbao,omitempty"`
+	AliyunSmsEngine *smsengines.AliyunSmsEngine `json:"aliyun,omitempty"`
+}
+
+func (conf *SmsEngineConf) Engine() smsengines.ISmsEngine {
+	if conf == nil {
+		return nil
+	}
+	switch conf.Channel {
+	case "baidu":
+		if conf.BdSmsEngine != nil && conf.BdSmsEngine.ApiKey != "" && conf.BdSmsEngine.SecretKey != "" {
+			return conf.BdSmsEngine
+		}
+	case "smsbao":
+		if conf.SmsBaoEngine != nil && conf.SmsBaoEngine.Username != "" && conf.SmsBaoEngine.Password != "" && conf.SmsBaoEngine.Template != "" {
+			return conf.SmsBaoEngine
+		}
+	case "aliyun":
+		if conf.AliyunSmsEngine.Valid() {
+			return conf.AliyunSmsEngine
+		}
+	}
+	return nil
 }
