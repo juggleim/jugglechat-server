@@ -105,12 +105,14 @@ func (c *LruCache) AddTimeoutAfterRead(timeout time.Duration) *LruCache {
 func (c *LruCache) cleanOldestByReadTime(timeLine int64) {
 	cacheItems := []CacheItem{}
 	for {
+		c.lock.Lock()
 		itemKey, itemValue, ok := c.lru.GetOldest()
 		if ok {
 			valObj := itemValue.(*lruCacheItem)
 			lastReadTime := valObj.lastReadTime
 			if lastReadTime < timeLine {
-				c.Remove(itemKey)
+				c.lru.Remove(itemKey)
+				c.lock.Unlock()
 				if c.batchEvict != nil {
 					cacheItems = append(cacheItems, CacheItem{
 						Key:   itemKey,
@@ -122,9 +124,11 @@ func (c *LruCache) cleanOldestByReadTime(timeLine int64) {
 					}
 				}
 			} else {
+				c.lock.Unlock()
 				break
 			}
 		} else {
+			c.lock.Unlock()
 			break
 		}
 	}
