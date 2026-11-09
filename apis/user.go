@@ -8,6 +8,7 @@ import (
 
 	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 	"github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/commons/accounts"
 	"github.com/juggleim/jugglechat-server/commons/ctxs"
 	"github.com/juggleim/jugglechat-server/commons/errs"
 	"github.com/juggleim/jugglechat-server/commons/imsdk"
@@ -36,7 +37,7 @@ func QryUserInfo(ctx *gin.Context) {
 
 func SetLoginAccount(ctx *gin.Context) {
 	req := &models.SetUserAccountReq{}
-	if err := ctx.BindJSON(req); err != nil || req.Account == "" {
+	if err := ctx.BindJSON(req); err != nil || !accounts.Valid(req.Account) {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}

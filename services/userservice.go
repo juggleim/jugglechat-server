@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/commons/accounts"
 	"github.com/juggleim/jugglechat-server/commons/appinfos"
 	"github.com/juggleim/jugglechat-server/commons/ctxs"
 	"github.com/juggleim/jugglechat-server/commons/emailengines"
@@ -205,10 +207,29 @@ func SearchByKeyword(ctx context.Context, keyword string) (errs.IMErrorCode, *ap
 func SetUserAccount(ctx context.Context, req *apimodels.SetUserAccountReq) errs.IMErrorCode {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	requestId := ctxs.GetRequesterIdFromCtx(ctx)
+	if appkey == "" {
+		return errs.IMErrorCode_APP_NOT_EXISTED
+	}
+	kind, _ := ctx.Value(ctxs.CtxKey_AuthKind).(string)
+	if requestId == "" || (kind != "legacy" && kind != "user_session") {
+		return errs.IMErrorCode_APP_NOT_LOGIN
+	}
+	if req == nil || !accounts.Valid(req.Account) {
+		return errs.IMErrorCode_APP_REQ_BODY_ILLEGAL
+	}
 	storage := storages.NewUserStorage()
 	err := storage.UpdateAccount(appkey, requestId, req.Account)
 	if err != nil {
-		return errs.IMErrorCode_APP_USER_EXISTED
+		switch {
+		case errors.Is(err, models.ErrAccountConflict):
+			return errs.IMErrorCode_APP_USER_EXISTED
+		case errors.Is(err, models.ErrAccountUserNotFound):
+			return errs.IMErrorCode_APP_USER_NOT_EXIST
+		case errors.Is(err, models.ErrAccountAppNotFound):
+			return errs.IMErrorCode_APP_NOT_EXISTED
+		default:
+			return errs.IMErrorCode_APP_DEFAULT
+		}
 	}
 	return errs.IMErrorCode_SUCCESS
 }

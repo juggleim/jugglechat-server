@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"regexp"
 
 	"github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/commons/accounts"
 	"github.com/juggleim/jugglechat-server/commons/appinfos"
 	"github.com/juggleim/jugglechat-server/commons/ctxs"
 	"github.com/juggleim/jugglechat-server/commons/errs"
@@ -89,14 +89,8 @@ func Login(ctx *gin.Context) {
 	})
 }
 
-var accountRegex *regexp.Regexp
-
-func init() {
-	accountRegex = regexp.MustCompile(`^[a-zA-Z0-9]{6,20}$`)
-}
-
 func checkAccount(account string) bool {
-	return accountRegex.MatchString(account)
+	return accounts.Valid(account)
 }
 
 func Register(ctx *gin.Context) {

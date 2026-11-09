@@ -12,6 +12,7 @@ const (
 	CtxKey_AppKey      CtxKey = "CtxKey_AppKey"
 	CtxKey_Session     CtxKey = "CtxKey_Session"
 	CtxKey_RequesterId CtxKey = "CtxKey_RequesterId"
+	CtxKey_AuthKind    CtxKey = "CtxKey_AuthKind"
 
 	CtxKey_Account  CtxKey = "CtxKey_Account"
 	CtxKey_RoleType CtxKey = "CtxKey_RoleType"
@@ -20,6 +21,9 @@ const (
 
 func ToCtx(ginCtx *gin.Context) context.Context {
 	rpcCtx := context.Background()
+	if kind := ginCtx.GetString(string(CtxKey_AuthKind)); kind != "" {
+		rpcCtx = context.WithValue(rpcCtx, CtxKey_AuthKind, kind)
+	}
 	appkey := ginCtx.GetString(string(CtxKey_AppKey))
 	if appkey != "" {
 		rpcCtx = context.WithValue(rpcCtx, CtxKey_AppKey, appkey)

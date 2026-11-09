@@ -6,10 +6,13 @@ import (
 	"strings"
 	"time"
 
+	mysqlerr "github.com/go-sql-driver/mysql"
 	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 	utils "github.com/juggleim/jugglechat-server/commons/tools"
 	"github.com/juggleim/jugglechat-server/storages/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"gorm.io/gorm/logger"
 )
 
 type UserDao struct {
@@ -261,7 +264,40 @@ func (user UserDao) Update(appkey, userId, nickname, userPortrait string) error 
 }
 
 func (user UserDao) UpdateAccount(appkey, userId, account string) error {
-	return dbcommons.GetDb().Model(&UserDao{}).Where("app_key=? and user_id=?", appkey, userId).Update("login_account", account).Error
+	// Do not log interpolated SQL or duplicate-entry values, even with DB debug on.
+	err := dbcommons.GetDb().Session(&gorm.Session{Logger: logger.Default.LogMode(logger.Silent)}).Transaction(func(tx *gorm.DB) error {
+		var app AppInfoDao
+		// Shared app lock protects existence while allowing unrelated users to update concurrently.
+		if err := tx.Select("id").Clauses(clause.Locking{Strength: "SHARE"}).Where("app_key=?", appkey).Take(&app).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return models.ErrAccountAppNotFound
+			}
+			return err
+		}
+		var current UserDao
+		if err := tx.Select("id", "login_account").Clauses(clause.Locking{Strength: "UPDATE"}).Where("app_key=? AND user_id=?", appkey, userId).Take(&current).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return models.ErrAccountUserNotFound
+			}
+			return err
+		}
+		if current.LoginAccount == account {
+			return nil
+		}
+		// Always write case-only changes; the unique index applies the DB collation.
+		return tx.Model(&UserDao{}).Where("id=?", current.ID).Update("login_account", account).Error
+	})
+	var me *mysqlerr.MySQLError
+	if errors.As(err, &me) && me.Number == 1062 {
+		// Match the reported key, not an account value containing the index name.
+		if i := strings.LastIndex(me.Message, " for key '"); i >= 0 {
+			key := strings.TrimSuffix(me.Message[i+10:], "'")
+			if key == "uniq_account" || key == "users.uniq_account" {
+				return models.ErrAccountConflict
+			}
+		}
+	}
+	return err
 }
 
 func (user UserDao) UpdatePass(appkey, userId, pass string) error {

@@ -23,6 +23,9 @@ const (
 )
 
 func Validate(ctx *gin.Context) {
+	// Identity kind is established only after credential verification.
+	ctx.Set(string(ctxs.CtxKey_AuthKind), "")
+	ctx.Set(string(ctxs.CtxKey_RequesterId), "")
 	session := utils.GenerateUUIDShort11()
 	ctx.Header(Header_RequestId, session)
 	ctx.Set(string(ctxs.CtxKey_Session), session)
@@ -60,6 +63,11 @@ func Validate(ctx *gin.Context) {
 			return
 		}
 		if strings.HasPrefix(tokenStr, "Bearer ") {
+			if urlPath == "/jim/users/setaccount" {
+				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+				ctx.Abort()
+				return
+			}
 			if !deviceauth.Allowed("api_key", urlPath, deviceauth.Required(appkey, time.Now().UnixMilli())) {
 				deviceError(ctx, deviceauth.ErrAuth, nil)
 				ctx.Abort()
@@ -72,6 +80,11 @@ func Validate(ctx *gin.Context) {
 				return
 			}
 		} else if strings.HasPrefix(tokenStr, "svc") {
+			if urlPath == "/jim/users/setaccount" {
+				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+				ctx.Abort()
+				return
+			}
 			claims, err := deviceauth.VerifyService(tokenStr, []byte(appInfo.AppSecureKey), appkey, urlPath, time.Now().UnixMilli())
 			if err != nil {
 				deviceError(ctx, deviceauth.ErrAuth, nil)
@@ -90,6 +103,7 @@ func Validate(ctx *gin.Context) {
 				return
 			}
 			ctx.Set("device_session", claims)
+			ctx.Set(string(ctxs.CtxKey_AuthKind), "user_session")
 			ctx.Set(string(ctxs.CtxKey_RequesterId), claims.UserID)
 		} else {
 			authToken, err := services.ParseTokenString(tokenStr)
@@ -105,6 +119,7 @@ func Validate(ctx *gin.Context) {
 				return
 			}
 			ctx.Set(string(ctxs.CtxKey_RequesterId), token.UserId)
+			ctx.Set(string(ctxs.CtxKey_AuthKind), "legacy")
 			deviceauth.LegacyAuthentications.Add(1)
 		}
 	}
