@@ -596,7 +596,7 @@ func BindPhoneSendSms(ctx context.Context, req *apimodels.BindPhoneReq) errs.IME
 func BindPhone(ctx context.Context, req *apimodels.BindPhoneReq) errs.IMErrorCode {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	userId := ctxs.GetRequesterIdFromCtx(ctx)
-	if req.Code != "000000" {
+	{
 		storage := storages.NewSmsRecordStorage()
 		record, err := storage.FindByPhoneCode(appkey, req.Phone, req.Code)
 		if err != nil {

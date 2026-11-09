@@ -8,6 +8,7 @@ import (
 )
 
 type AppConfig struct {
+	PasswordSMSPepper string `yaml:"password_sms_pepper"`
 	// New explicit setting takes precedence; nil uses the deprecated alias.
 	DeviceIMKickEnabled         *bool            `yaml:"device_im_kick_enabled"`
 	DeviceIMBanEnabled          bool             `yaml:"device_im_ban_enabled"`

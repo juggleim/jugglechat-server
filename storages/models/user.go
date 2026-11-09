@@ -33,6 +33,7 @@ type FriendInfo struct {
 }
 
 type IUserStorage interface {
+	FindPasswordState(appkey, userId string) (*UserPasswordState, error)
 	Create(item User) error
 	Upsert(item User) error
 	Delete(appkey, userId string) error
@@ -51,6 +52,12 @@ type IUserStorage interface {
 	Count(appkey string) int
 	CountByTime(appkey string, start, end int64) int64
 	QryUsers(appkey, name string, startId, limit int64, isPositiveOrder bool) ([]*User, error)
+}
+
+// UserPasswordState is intentionally independent of the full user profile.
+type UserPasswordState struct {
+	LoginPass string
+	Phone     string
 }
 
 type UserExt struct {

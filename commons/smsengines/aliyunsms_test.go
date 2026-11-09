@@ -93,6 +93,10 @@ func TestAliyunSmsEngineRejectsProviderFailure(t *testing.T) {
 	engine := newTestAliyunSmsEngine(client)
 
 	err := engine.SmsSend("13800138000", map[string]interface{}{"code": "123456"})
+	var rejected *SMSRejectedError
+	if !errors.As(err, &rejected) {
+		t.Fatalf("expected typed provider rejection, got %T", err)
+	}
 	if err == nil || !strings.Contains(err.Error(), "isv.SMS_SIGNATURE_ILLEGAL") {
 		t.Fatalf("expected provider rejection, got %v", err)
 	}
@@ -108,6 +112,19 @@ func TestAliyunSmsEnginePropagatesClientError(t *testing.T) {
 	err := engine.SmsSend("13800138000", map[string]interface{}{"code": "123456"})
 	if err == nil || !strings.Contains(err.Error(), "network error") {
 		t.Fatalf("expected client error, got %v", err)
+	}
+	var rejected *SMSRejectedError
+	if errors.As(err, &rejected) {
+		t.Fatal("network error classified as rejection")
+	}
+}
+
+func TestAliyunSmsMissingStatusIsUnknown(t *testing.T) {
+	client := &fakeAliyunSmsClient{resp: (&dysms.SendSmsResponse{}).SetBody(&dysms.SendSmsResponseBody{})}
+	err := newTestAliyunSmsEngine(client).SmsSend("13800138000", map[string]interface{}{"code": "123456"})
+	var rejected *SMSRejectedError
+	if err == nil || errors.As(err, &rejected) {
+		t.Fatalf("missing status must be unknown: %v", err)
 	}
 }
 

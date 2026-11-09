@@ -35,6 +35,15 @@ func QryUserInfo(ctx *gin.Context) {
 	responses.SuccessHttpResp(ctx, user)
 }
 
+func QryPasswordStatus(ctx *gin.Context) {
+	code, status := services.QryPasswordStatus(ctxs.ToCtx(ctx))
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, status)
+}
+
 func SetLoginAccount(ctx *gin.Context) {
 	req := &models.SetUserAccountReq{}
 	if err := ctx.BindJSON(req); err != nil || !accounts.Valid(req.Account) {

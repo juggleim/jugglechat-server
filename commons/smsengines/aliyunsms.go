@@ -25,6 +25,14 @@ type aliyunSmsClient interface {
 	SendSmsWithContext(context.Context, *dysms.SendSmsRequest, *dara.RuntimeOptions) (*dysms.SendSmsResponse, error)
 }
 
+// SMSRejectedError means a provider business response explicitly refused delivery.
+// Transport errors and missing business status must never be classified by text.
+type SMSRejectedError struct{ Code, RequestID string }
+
+func (e *SMSRejectedError) Error() string {
+	return fmt.Sprintf("aliyun sms rejected request: code=%s request_id=%s", e.Code, e.RequestID)
+}
+
 // AliyunSmsEngine sends template SMS messages through Alibaba Cloud SMS.
 // One engine instance is created and cached for each app key.
 type AliyunSmsEngine struct {
@@ -46,6 +54,12 @@ func (eng *AliyunSmsEngine) Valid() bool {
 		strings.TrimSpace(eng.AccessKeySecret) != "" &&
 		strings.TrimSpace(eng.SignName) != "" &&
 		strings.TrimSpace(eng.TemplateCode) != ""
+}
+
+// Prepare validates local configuration/client creation without sending a request.
+func (eng *AliyunSmsEngine) Prepare() error {
+	_, err := eng.createClient()
+	return err
 }
 
 func (eng *AliyunSmsEngine) createClient() (aliyunSmsClient, error) {
@@ -131,7 +145,10 @@ func (eng *AliyunSmsEngine) SmsSend(phone string, params map[string]interface{})
 		return fmt.Errorf("aliyun sms delivery failed: empty response")
 	}
 	if code := dara.StringValue(response.Body.Code); code != "OK" {
-		return fmt.Errorf("aliyun sms rejected request: code=%s request_id=%s", code, dara.StringValue(response.Body.RequestId))
+		if code == "" {
+			return fmt.Errorf("aliyun sms delivery failed: missing business status")
+		}
+		return &SMSRejectedError{Code: code, RequestID: dara.StringValue(response.Body.RequestId)}
 	}
 	return nil
 }

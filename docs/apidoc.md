@@ -2,9 +2,9 @@
 
 本文档根据当前仓库的路由、Handler、请求模型和 Service 实现整理，覆盖所有已注册的 HTTP 业务接口。
 
-- 主业务接口：85 个，统一使用 `/jim` 前缀。
+- 主业务接口：87 个，统一使用 `/jim` 前缀。
 - 助手回调接口：1 个，使用独立的 `/callback` 前缀和端口。
-- 合计：86 个 `method + path` 接口。
+- 合计：88 个 `method + path` 接口。
 - 文档反映当前代码行为；代码中没有显式实现的校验、权限或数据清理能力，不应视为接口保证。
 
 ## 1. 服务地址
@@ -81,7 +81,7 @@ request-id: <服务端生成的短 UUID>
 - `POST /jim/register`
 - `GET /jim/login/qrcode`
 - `POST /jim/login/qrcode/check`
-- `POST /jim/sms/send`
+- `POST /jim/sms/send`（仅 purpose 省略或 login；set_password 必须用户登录）
 - `POST /jim/sms_login`
 - `POST /jim/sms/login`
 - `POST /jim/email/send`
@@ -120,7 +120,7 @@ request-id: <服务端生成的短 UUID>
 }
 ```
 
-当前错误映射除成功码外没有配置 HTTP 状态和错误消息，因此多数业务错误仍返回 HTTP `200`，且 `msg` 为空。客户端必须以响应 JSON 的 `code` 判断业务结果。
+多数业务错误仍返回 HTTP `200`，且 `msg` 为空；新设密错误 17019–17023 有明确英文 msg。客户端必须以响应 JSON 的 `code` 判断业务结果。
 
 当 JSON 语法错误时，Gin 的 `BindJSON` 可能先写入 HTTP `400`。客户端应同时兼顾 HTTP 状态和业务 `code`。
 
@@ -317,8 +317,9 @@ POST /jim/register
 POST /jim/sms/send
 ```
 
-- 鉴权：AppKey。
-- Body：`phone` 必填，`code` 不使用。
+- 鉴权：purpose 省略或 `login` 为 AppKey；`set_password` 必须有效 ds1 或兼容期 legacy 用户会话，拒绝 API Key/service/空 requester。
+- Body：`purpose` 可选，仅接受 `login`、`set_password`；未知值返回 17003。登录用途 `phone` 必填；设密用途从当前绑定手机号取号码，忽略客户端 phone/user_id，不要求先调用 status。
+- 设密用途详见 8.18；独立验证码、5 分钟有效、60 秒重发间隔、每 app 的账号和手机号各 5 次/滚动固定小时窗、10 次/滚动固定日窗（从首次发送起算）。配置预检失败不预留；预留后失败使旧码失效并保留小时/日计数，供应商明确拒绝仅释放当前 attempt 的短冷却，未知结果保留冷却。set_password 响应新增 data.retry_after_seconds（各有效限制剩余时间的最大值），客户端成功/失败均按此倒计时；登录用途响应不变。
 - 返回：`data: null`。
 - 主要错误：`17003`、`17008`。
 
@@ -339,7 +340,12 @@ POST /jim/sms/login
 - Body：`phone` 必填，`code` 用于验证码校验。
 - 用户不存在时自动注册。
 - 返回：`LoginUserResp`。
-- 主要错误：`17003`、`17009`、`17005`、`17002`、`17004`。
+- 主要错误：`17003`、`17009`、`17005`、`17002`、`17004`、`17000`（用户查询/回填数据库故障）、`17028`（`SMS login phone binding conflict`）。
+- 验码成功后，按 phone 命中的当前绑定用户优先登录，不再查询 legacy。仅 phone 未找到时兼容查询 legacy，且只在其手机号 NULL/空时回填；legacy 已绑定不同号码、回填时号码被另一用户占用等绑定冲突返回 `17028` 并终止登录，不覆盖绑定或合并账号。
+- 仅短信自动创建的全新用户默认 `login_account=原手机号`。同应用 `uniq_account` 冲突时直接追加 4 位 `crypto/rand` 的 `a-z0-9` 后缀，无下划线；最多尝试 10 个后缀，耗尽返回 `17000`。跨应用可同名，ci 唯一索引不区分大小写。
+- 默认账号共享注册 `^[a-zA-Z0-9]{6,20}$`；原手机号不合法（如带 `+`），或冲突后追加 4 位超过 20 位，返回 `17003`，不截断或改写手机号。11 位手机号加后缀为 15 位。已有 phone/legacy 命中保持原账号（含空值），无批量迁移。
+- 不自动设置密码：`login_pass` 为 NULL，`has_password=false`，符合手机号格式时可短信首次设密；不是空密码 hash。登录响应保持原结构；用本人 `user_id` 请求 `/jim/users/info`，读取 `data.account` 获取实际账号。
+- `uniq_phone` 并发冲突读取已建用户正常登录，使用其实际 user_id；仅真正创建者触发注册事件和默认设置。userid 冲突及其它 DB 故障返回 `17000`，不重试为账号冲突。
 
 ```json
 {"phone":"13800000000","code":"123456"}
@@ -452,7 +458,7 @@ GET /jim/syncconfs
 - 无参数。
 - 当前固定返回空对象 `{}`。
 
-## 8. 用户接口（16 个）
+## 8. 用户接口（18 个）
 
 ### 8.1 查询用户信息
 
@@ -475,6 +481,7 @@ POST /jim/users/setaccount
 - 鉴权：有效应用下的当前用户 Token（兼容期 legacy 或有效 `ds1` 用户会话，按现有设备登录策略）；拒绝 API Key 和内部 service 凭证。
 - Body：`account` 必填，与注册一致，仅允许 6–20 位 ASCII 字母或数字（`^[a-zA-Z0-9]{6,20}$`），不裁剪空白、不自动转小写；结构中的 `password` 当前不使用，不校验或修改密码，不轮换会话。
 - 只更新当前用户。账号唯一性由现有 `(app_key, login_account)` 唯一索引及数据库 ci 排序规则决定；跨应用允许同名，同用户重复设置成功，仅变更大小写也成功并保留输入大小写。
+- 短信新建默认账号及 4 位冲突后缀见 6.4；不会自动设置密码，也不补写历史/legacy 账号。实际账号通过本人 `/jim/users/info` 的 `data.account` 读取，可用本接口修改。
 - 返回：`data: null`。
 - 主要错误：`17001` 缺少 appkey；`17002` 应用不存在；`17003` 参数非法；`17005` 非用户身份/未登录；`17605` 无效或已撤销 ds1（严格模式 legacy 拒绝沿用 `17005`）；`17012` 当前应用用户不存在；`17011` 仅账号唯一索引冲突；其它数据库错误 `17000`。
 
@@ -657,6 +664,62 @@ POST /jim/users/onlinestatus
 - Body：非空数组 `user_ids`。
 - 返回：JuggleIM SDK 的在线状态响应。
 - 主要错误：`17003`、`17002`、`17004` 及 SDK 错误码。
+
+### 8.17 查询当前用户密码状态
+
+```http
+GET /jim/users/password/status
+```
+
+- 鉴权：必须是当前登录用户，有效 `ds1` 或兼容期 legacy Token；遵守现有设备登录策略，拒绝 API Key 和内部 service 凭证。
+- 无 Body、无 `user_id` 入参；查询仅使用已验证的 `appkey` 和 requester，额外传入 `user_id` 不会改变查询对象。
+- 只查询当前用户的 `login_pass`、`phone`，不复用完整用户信息接口或用户缓存，不返回手机号、密码或 hash。
+
+```json
+{"code":0,"msg":"success","data":{"has_password":false,"can_set_password_by_sms":true}}
+```
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| has_password | boolean | 当前数据库密码非 NULL 且非空时为 true；不裁剪密码/hash。NULL 或空表示当前无密码，UI 应展示首次设置状态，不推断历史上是否设置过 |
+| can_set_password_by_sms | boolean | 仅当前无密码且已绑定格式有效的手机号时为 true，表示资格，不代表短信可达、供应商已配置或已部署 |
+
+手机号格式为大陆 `1[3-9][0-9]{9}` 或带 `+` 的国际号码（首位非零、7–15 位数字），不裁剪空白；已有密码时资格始终为 false。
+
+进入密码界面时可请求此接口决定 UI；它不是发送或提交的前置步骤。发送和 setpass 均实时检查状态和权限。本接口不发送短信或修改密码，不改变 `/jim/users/updpass` 行为。文档描述当前源码，不代表已部署。
+
+主要错误：`17001` 缺少 appkey；`17002` 应用不存在；`17005` 未登录/非用户身份/legacy 被策略拒绝；`17605` ds1 无效或已撤销；`17012` 当前应用下用户不存在；状态查询数据库错误 `17000`。既有 Validate 的应用预查仍可能把冷 app 缓存数据库故障报为 `17002`。
+
+### 8.18 短信首次设置密码
+
+`POST /jim/users/setpass`，Body：`{"code":"收到的六位验证码","new_password":"abcdef"}`。仅当前登录本人，无 user_id/phone 入参，成功 `{"code":0,"msg":"success","data":null}`。
+
+先 `POST /jim/sms/send {"purpose":"set_password"}`，使用有效用户 Authorization 原文和 appkey。仅当前 login_pass 为 NULL 或空字符串且有格式有效绑定手机号可操作；已设密码返回 17019，不执行改密。密码规则：有效 UTF-8、6–64 Unicode 字符，禁止全空白，不 trim；仅新接口采用此规则，注册和旧 updpass 不变。继续存储 SHA1 兼容账密登录，hash 升级另期。
+
+验证码由 crypto/rand 生成，独立按 purpose/app/user/当前绑定手机号校验，不接受登录验证码或万能测试码；5 分钟到期，最多 5 次错误尝试，第 5 次及后续返回 17022。重发更换验证码、旧码失效；绑定手机号变化后旧码不可用。成功消费与仅 NULL/空密码条件更新在同一 MySQL 行锁事务中，DB 错误回滚允许重试；并发不能覆盖已设密码。新流程不写 has_password 用户缓存。
+
+| code | 说明 |
+| --- | --- |
+| 17003 | 非法 JSON、密码不满足上述规则、未知 purpose |
+| 17005 / 17605 | 非用户身份、未登录、无效或失效会话（按鉴权路径返回） |
+| 17012 | 当前 app 下用户不存在 |
+| 17019 | password already set：已设密码 |
+| 17020 | valid bound phone required：无格式有效绑定手机号 |
+| 17021 | SMS rate limited：重发间隔或账号/手机号小时/日限额 |
+| 17022 | SMS verification attempts exceeded：验证错误已达 5 次，需重发 |
+| 17023 | invalid or expired password SMS code：无记录、错误、过期、未发送成功、手机号不匹配或跨用途验证码 |
+| 17008 | 配置预检失败不计额、不替换旧码；预留后发送失败计小时/日额度且旧码失效，明确拒绝仅释放当前短冷却，未知结果保留冷却；等待秒数见发送响应 data.retry_after_seconds |
+| 17000 | DB/随机数错误；提交事务回滚，不能当成功 |
+
+上线前运行嵌入迁移 `commons/dbcommons/sqls/20261109.sql`（启动 Upgrade 按版本顺序自动运行），新增 InnoDB challenges/quotas 表。应用扩展配置 `set_password_sms_engine_conf` 选填，结构同 `sms_engine_conf`：仅当此记录确实不存在时回退到原登录短信配置 `sms_engine_conf`；显式空值、非法 JSON、不完整配置、数据库查询失败或不支持的渠道均失败关闭，不回退。无论使用哪个配置，模板必须适用于“首次设置密码”或明确通用身份验证，不能复用只写“登录/注册”的文案；上线须逐应用核实模板用途。新流程目前仅允许 aliyun，且检查供应商业务返回 `OK`：旧 baidu 会打印供应商响应，smsbao 未检查业务状态，故不在新用途启用；原登录用途不变。配置示意：`{"channel":"aliyun","aliyun":{"access_key":"YOUR_KEY","access_secret":"YOUR_SECRET","sign_name":"YOUR_SIGN","template_code":"YOUR_SET_PASSWORD_TEMPLATE","template_code_key":"code"}}`。不得在日志中输出这些配置、手机号、验证码或密码。
+
+迁移还新增 users.password_sms_phone_version 和手机号变更触发器；无需改旧绑定接口，数据库即使号码变更后再改回，也会使原验证码失效。兼容 MySQL 8.0，迁移账号需 TRIGGER 权限。字段迁移包含会话级 PREPARE，执行器固定同一连接；MySQL 不支持 PREPARE CREATE TRIGGER，因此触发器由 Go 专门步骤查询 information_schema.TRIGGERS 后执行普通 CREATE TRIGGER。必须通过启动 Upgrade 完整执行 SQL 和 Go 步骤，不能只手工执行 SQL 文件。失败返回错误、不推进版本，支持重新执行。
+
+服务器 YAML 新增必配项 `password_sms_pepper`，须为至少 32 字节的高熵服务器专用秘密；默认空，未配置或不足 32 字节时，新用途发送与提交均返回 `17024` / `password SMS pepper not configured`，不会预留发送额度或调用供应商，不影响原 SMS 登录。所有进程必须使用相同且重启后稳定的值，不可每次启动随机生成。配置示意仅用占位符：`password_sms_pepper: "<至少32字节的服务器专用随机秘密>"`；不得把真实值提交仓库或输出日志。
+
+设密摘要使用 HMAC-SHA256，绑定 purpose/app/user/phone/nonce/code/phone version，常量时间比对。pepper 不存 challenge 表、apps 表或其他数据库表，不复用 AppSecureKey。可抵御仅 challenge 表（甚至仅数据库但不含服务器秘密）泄露后的离线穷举；不宣称服务器配置和数据库一起泄露仍可防护。跨进程共享稳定 pepper 支持重启后继续验证；更换 pepper 会使现存挑战失效，需重新发送验证码。
+
+发送先持久化预留，再调用供应商；供应商成功后才激活验证码。若供应商已接受但 DB 激活失败返回 17000，收到的码不可用，需要等待间隔后重发，不会误报成功。资格字段不检查供应商配置。当前未部署，未真实发送短信。
 
 ## 9. Telegram Bot 接口（4 个）
 
@@ -1341,7 +1404,7 @@ POST /callback/assistants/msgcallback
 | 服务发现 | 3 |
 | 登录与注册 | 10 |
 | 文件、翻译和同步 | 3 |
-| 用户 | 16 |
+| 用户 | 18 |
 | Telegram Bot | 4 |
 | 群组基本操作 | 17 |
 | 群申请与邀请 | 8 |
@@ -1352,7 +1415,7 @@ POST /callback/assistants/msgcallback
 | 应用 | 1 |
 | 反馈 | 1 |
 | 助手回调 | 1 |
-| **总计** | **86** |
+| **总计** | **88** |
 
 ## 20. 兼容路径
 
@@ -1368,12 +1431,12 @@ POST /callback/assistants/msgcallback
 2. 用户 Token 没有 `Bearer ` 前缀；Bearer 模式是 API Key 模式。
 3. Bearer API Key 鉴权不会设置当前用户 ID，不适合依赖当前用户身份的接口。
 4. 当前多个用户和群管理接口缺少对象级权限校验，不能仅因“需要登录”就认为已经安全授权。
-5. 验证码逻辑中存在特殊测试码行为；生产部署应审查并移除不安全的绕过逻辑。
+5. 本次已去除 SMS 登录校验和 BindPhone 的硬编码万能码放行，这是安全行为变化：000000 只有匹配真实、未过期 SMS 记录才可通过，不能再用于无记录登录或换绑。其他邮箱验证码逻辑不在本次修复范围内。
 6. Telegram Bot 列表当前返回完整 Token，应限制接口访问并避免日志泄漏。
 7. Callback 接口当前没有签名和来源校验，并且失败时仍返回成功。
 8. 分页接口混用了 `page/size`、`offset/count`、`offset/limit` 和 `start/count/order`，调用时应以各接口说明为准。
 9. 仓库中还存在未注册的 `QryFriends`、`AddFriend` Handler，它们不属于当前可调用 API。
-10. 静态 Web 的 `GET /`、`HEAD /` 和 SPA fallback 不计入本文 86 个业务接口。
+10. 静态 Web 的 `GET /`、`HEAD /` 和 SPA fallback 不计入本文 87 个主业务接口。
 
 ## 22. 代码位置
 

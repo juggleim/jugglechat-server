@@ -31,6 +31,7 @@ func Validate(ctx *gin.Context) {
 	ctx.Set(string(ctxs.CtxKey_Session), session)
 	//&& urlPath != "/jim/serverinfos"
 	urlPath := ctx.Request.URL.Path
+	passwordSMS := ctx.GetBool("password_sms_auth")
 	if urlPath == "/jim/serverinfos" || urlPath == "/jim/servers/info" || urlPath == "/jim/servers/list" {
 		return
 	}
@@ -54,7 +55,7 @@ func Validate(ctx *gin.Context) {
 		return
 	}
 
-	if urlPath != "/jim/login" && urlPath != "/jim/register" && urlPath != "/jim/sms/send" && urlPath != "/jim/sms_login" && urlPath != "/jim/sms/login" && urlPath != "/jim/email/send" && urlPath != "/jim/email/login" && urlPath != "/jim/login/qrcode" && urlPath != "/jim/login/qrcode/check" {
+	if passwordSMS || (urlPath != "/jim/login" && urlPath != "/jim/register" && urlPath != "/jim/sms/send" && urlPath != "/jim/sms_login" && urlPath != "/jim/sms/login" && urlPath != "/jim/email/send" && urlPath != "/jim/email/login" && urlPath != "/jim/login/qrcode" && urlPath != "/jim/login/qrcode/check") {
 		//current userId
 		tokenStr := ctx.Request.Header.Get(Header_Authorization)
 		if tokenStr == "" {
@@ -63,7 +64,7 @@ func Validate(ctx *gin.Context) {
 			return
 		}
 		if strings.HasPrefix(tokenStr, "Bearer ") {
-			if urlPath == "/jim/users/setaccount" {
+			if passwordSMS || urlPath == "/jim/users/setpass" || urlPath == "/jim/users/setaccount" || urlPath == "/jim/users/password/status" {
 				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 				ctx.Abort()
 				return
@@ -80,7 +81,7 @@ func Validate(ctx *gin.Context) {
 				return
 			}
 		} else if strings.HasPrefix(tokenStr, "svc") {
-			if urlPath == "/jim/users/setaccount" {
+			if passwordSMS || urlPath == "/jim/users/setpass" || urlPath == "/jim/users/setaccount" || urlPath == "/jim/users/password/status" {
 				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 				ctx.Abort()
 				return

@@ -36,6 +36,20 @@ func (user UserDao) TableName() string {
 	return "users"
 }
 
+func (user UserDao) FindPasswordState(appkey, userId string) (*models.UserPasswordState, error) {
+	var item models.UserPasswordState
+	err := dbcommons.GetDb().Session(&gorm.Session{Logger: logger.Default.LogMode(logger.Silent)}).
+		Model(&UserDao{}).Select("login_pass", "phone").
+		Where("app_key=? and user_id=?", appkey, userId).Take(&item).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &item, nil
+}
+
 func (user UserDao) FindByUserId(appkey, userId string) (*models.User, error) {
 	var item UserDao
 	err := dbcommons.GetDb().Where("app_key=? and user_id=?", appkey, userId).Take(&item).Error
@@ -222,8 +236,11 @@ func (user UserDao) Create(item models.User) error {
 		params = append(params, item.Email)
 	}
 	if item.LoginAccount != "" {
-		sqlBuilder.WriteString(",login_account,login_pass")
+		sqlBuilder.WriteString(",login_account")
 		params = append(params, item.LoginAccount)
+	}
+	if item.LoginPass != "" {
+		sqlBuilder.WriteString(",login_pass")
 		params = append(params, item.LoginPass)
 	}
 	sqlBuilder.WriteString(")VALUES(")

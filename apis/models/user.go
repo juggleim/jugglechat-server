@@ -1,5 +1,10 @@
 package models
 
+type PasswordStatus struct {
+	HasPassword         bool `json:"has_password"`
+	CanSetPasswordBySMS bool `json:"can_set_password_by_sms"`
+}
+
 var (
 	UserExtKey_Phone            string = "phone"
 	UserExtKey_Language         string = "language"

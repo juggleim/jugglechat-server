@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"math/rand"
 
 	"github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/commons/accounts"
@@ -164,8 +165,31 @@ func Register(ctx *gin.Context) {
 }
 
 func SmsSend(ctx *gin.Context) {
-	req := &models.SmsLoginReq{}
-	if err := ctx.BindJSON(req); err != nil || req.Phone == "" {
+	req := &struct {
+		Phone   string `json:"phone"`
+		Purpose string `json:"purpose"`
+	}{}
+	if err := ctx.ShouldBindJSON(req); err != nil {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	if req.Purpose == "set_password" {
+		ctx.Set("password_sms_auth", true)
+		Validate(ctx)
+		if ctx.IsAborted() {
+			return
+		}
+		code, retry := services.SendPasswordSMSWithRetry(ctxs.ToCtx(ctx))
+		data := gin.H{"retry_after_seconds": retry}
+		if code != errs.IMErrorCode_SUCCESS {
+			apiErr := errs.GetApiErrorByCode(code)
+			ctx.JSON(apiErr.HttpCode, gin.H{"code": code, "msg": apiErr.Msg, "data": data})
+			return
+		}
+		responses.SuccessHttpResp(ctx, data)
+		return
+	}
+	if (req.Purpose != "" && req.Purpose != "login") || req.Phone == "" {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
@@ -186,50 +210,41 @@ func SmsLogin(ctx *gin.Context) {
 	code := services.CheckPhoneSmsCode(ctxs.ToCtx(ctx), req.Phone, req.Code)
 	if code == errs.IMErrorCode_SUCCESS {
 		appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
-		userId := utils.ShortMd5(req.Phone)
-		nickname := fmt.Sprintf("user%05d", utils.RandInt(100000))
+		userId := ""
+		nickname := fmt.Sprintf("user%05d", rand.Intn(100000))
 		userPortrait := ""
-		storage := storages.NewUserStorage()
-		user, err := storage.FindByPhone(appkey, req.Phone)
-		if err == nil && user != nil {
-			userId = user.UserId
-			nickname = user.Nickname
-			userPortrait = user.UserPortrait
-		} else {
-			user, err = storage.FindByUserId(appkey, userId)
-			if err == nil && user != nil {
-				userId = user.UserId
-				nickname = user.Nickname
-				userPortrait = user.UserPortrait
-			} else {
-				userId = utils.GenerateUUIDShort11()
-				err = storage.Create(dbModels.User{
-					UserId:   userId,
-					Nickname: nickname,
-					Phone:    req.Phone,
-					AppKey:   appkey,
+		user, resolveCode := services.ResolveVerifiedSMSUser(appkey, req.Phone)
+		if resolveCode != errs.IMErrorCode_SUCCESS {
+			responses.ErrorHttpResp(ctx, resolveCode)
+			return
+		}
+		if user == nil {
+			var created bool
+			user, created, resolveCode = services.CreateVerifiedSMSUser(dbModels.User{
+				UserId:   utils.GenerateUUIDShort11(),
+				Nickname: nickname,
+				Phone:    req.Phone,
+				AppKey:   appkey,
+			})
+			if resolveCode != errs.IMErrorCode_SUCCESS {
+				responses.ErrorHttpResp(ctx, resolveCode)
+				return
+			}
+			if created {
+				events.TriggerUserRegiste(appkey, *user)
+				userExtStorage := storages.NewUserExtStorage()
+				userExtStorage.Upsert(dbModels.UserExt{
+					UserId:    user.UserId,
+					ItemKey:   models.UserExtKey_FriendVerifyType,
+					ItemValue: utils.Int2String(int64(models.FriendVerifyType_NeedFriendVerify)),
+					ItemType:  models.AttItemType_Setting,
+					AppKey:    appkey,
 				})
-				if err != nil {
-					responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
-					return
-				} else {
-					events.TriggerUserRegiste(appkey, dbModels.User{
-						UserId:   userId,
-						Nickname: nickname,
-						Phone:    req.Phone,
-						AppKey:   appkey,
-					})
-					userExtStorage := storages.NewUserExtStorage()
-					userExtStorage.Upsert(dbModels.UserExt{
-						UserId:    userId,
-						ItemKey:   models.UserExtKey_FriendVerifyType,
-						ItemValue: utils.Int2String(int64(models.FriendVerifyType_NeedFriendVerify)),
-						ItemType:  models.AttItemType_Setting,
-						AppKey:    appkey,
-					})
-				}
 			}
 		}
+		userId = user.UserId
+		nickname = user.Nickname
+		userPortrait = user.UserPortrait
 		sdk := imsdk.GetImSdk(appkey)
 		if sdk == nil {
 			responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
