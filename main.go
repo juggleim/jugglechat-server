@@ -13,7 +13,9 @@ import (
 	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/log"
 	"github.com/juggleim/jugglechat-server/routers"
+	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/services/deviceauth"
+	"github.com/juggleim/jugglechat-server/storages/dbs"
 )
 
 func main() {
@@ -36,6 +38,13 @@ func main() {
 	}
 	workerCtx, stopWorker := context.WithCancel(context.Background())
 	defer stopWorker()
+	converWorkerDone := make(chan struct{})
+	go func() {
+		defer close(converWorkerDone)
+		adapter := deviceauth.ConfiguredIM().(*deviceauth.HTTPIM)
+		worker := services.ConverWorker{Store: dbs.ConverOutboxStore{DB: dbcommons.GetDb()}, Notifier: adapter}
+		worker.Run(workerCtx, func() { log.Error("Conversation outbox database/claim unavailable; durable retry pending") })
+	}()
 	go func() {
 		store := deviceauth.Store{DB: dbcommons.GetDb(), IM: deviceauth.ConfiguredIM()}
 		ticker := time.NewTicker(15 * time.Second)
@@ -72,4 +81,6 @@ func main() {
 	}()
 
 	<-closeChan
+	stopWorker()
+	<-converWorkerDone
 }

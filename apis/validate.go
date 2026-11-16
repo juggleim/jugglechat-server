@@ -93,6 +93,7 @@ func Validate(ctx *gin.Context) {
 				return
 			}
 			ctx.Set(string(ctxs.CtxKey_RequesterId), claims.UserID)
+			ctx.Set(string(ctxs.CtxKey_AuthKind), "service")
 		} else if strings.HasPrefix(tokenStr, "ds") {
 			claims, err := deviceauth.Verify(tokenStr, []byte(appInfo.AppSecureKey), appkey)
 			if err == nil {

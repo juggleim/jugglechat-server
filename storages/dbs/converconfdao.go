@@ -6,6 +6,7 @@ import (
 
 	"github.com/juggleim/jugglechat-server/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/storages/models"
+	"gorm.io/gorm"
 )
 
 type ConverConfDao struct {
@@ -43,7 +44,9 @@ func (conf ConverConfDao) BatchUpsert(items []models.ConverConf) error {
 		}
 		params = append(params, item.AppKey, item.ConverId, item.ConverType, item.SubChannel, item.ItemKey, item.ItemValue, item.ItemType)
 	}
-	return dbcommons.GetDb().Exec(buffer.String(), params...).Error
+	return dbcommons.GetDb().Transaction(func(tx *gorm.DB) error {
+		return tx.Exec(buffer.String(), params...).Error
+	})
 }
 
 func (conf ConverConfDao) QryConverConfs(appkey, converId, subChannel string, converType int32) (map[string]*models.ConverConf, error) {

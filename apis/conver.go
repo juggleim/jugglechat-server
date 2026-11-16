@@ -1,12 +1,14 @@
 package apis
 
 import (
+	"encoding/json"
+	"io"
+
 	"github.com/gin-gonic/gin"
 	"github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/commons/ctxs"
 	"github.com/juggleim/jugglechat-server/commons/errs"
 	"github.com/juggleim/jugglechat-server/commons/responses"
-	"github.com/juggleim/jugglechat-server/commons/tools"
 	"github.com/juggleim/jugglechat-server/services"
 )
 
@@ -15,16 +17,13 @@ func GetConverConfs(ctx *gin.Context) {
 	subChannel := ctx.Query("sub_channel")
 	converTypeStr := ctx.Query("conver_type")
 
-	var converType int32 = 0
-	if converTypeStr != "" {
-		intVal, err := tools.String2Int64(converTypeStr)
-		if err == nil && intVal > 0 {
-			converType = int32(intVal)
-		}
-	}
-	if targetId == "" || converType <= 0 {
+	if targetId == "" || (converTypeStr != "1" && converTypeStr != "2") {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
+	}
+	converType := int32(1)
+	if converTypeStr == "2" {
+		converType = 2
 	}
 
 	code, ret := services.GetConverConfItems(ctxs.ToCtx(ctx), targetId, subChannel, converType)
@@ -37,7 +36,12 @@ func GetConverConfs(ctx *gin.Context) {
 
 func SetConverConfs(ctx *gin.Context) {
 	req := &models.SetConverConfsReq{}
-	if err := ctx.BindJSON(req); err != nil || req.TargetId == "" || req.ConverType <= 0 || len(req.Confs) <= 0 {
+	decoder := json.NewDecoder(ctx.Request.Body)
+	decoder.UseNumber()
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(req)
+	var extra interface{}
+	if err != nil || decoder.Decode(&extra) != io.EOF || req.TargetId == "" || (req.ConverType != 1 && req.ConverType != 2) || len(req.Confs) <= 0 {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}

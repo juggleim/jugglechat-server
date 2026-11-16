@@ -1291,7 +1291,7 @@ POST /jim/messages/del
 
 ## 15. 会话配置接口（2 个）
 
-当前实际支持的配置键是 `msg_life_time`，代码注释单位为毫秒。
+会话共享配置：`msg_life_time`（沿用旧值，非负 int64；代码注释为毫秒，现有 iOS 还兼容菜单编码，服务端不做菜单转换）、`forbid_forward`、`content_protection`、`watermark_enabled`（三个独立 bool，默认 false）。沿用原 `converconfs` KV 表，无新 SQL。
 
 ### 15.1 获取会话配置
 
@@ -1299,9 +1299,10 @@ POST /jim/messages/del
 GET /jim/converconfs/get?target_id=user_456&conver_type=1&sub_channel=
 ```
 
-- 鉴权：登录。
-- Query：`target_id` 必填；`conver_type` 必须大于 `0`；`sub_channel` 可空。
-- 返回：动态对象，例如 `{"msg_life_time":86400000}`；无配置时返回 `{}`。
+- 鉴权：有效 legacy/ds1 用户身份，非空且当前 app 用户存在；API Key 不允许。内部 svc 凭证仅在真实 subject 存在且有会话权限时允许 GET，不允许 SET。
+- Query：`target_id` 必填；`conver_type` 仅 `1` 单聊或 `2` 群聊；`sub_channel` 可空，独立存储。
+- 单聊双方共用按用户 ID 排序的 scope，任一方可 get/set，目标必须在同 app 存在。群聊仅当前成员可 get/set，群主、管理员、普通成员权限相同；不受管理 mask 限制。
+- 返回：动态对象，例如 `{"msg_life_time":86400000,"forbid_forward":false,"content_protection":false,"watermark_enabled":false}`。三个 bool 始终返回；未存储生命周期时仍省略旧字段，旧非法/非正生命周期读为 0。DB 查询错误返回 17000。
 
 ### 15.2 设置会话配置
 
@@ -1309,9 +1310,9 @@ GET /jim/converconfs/get?target_id=user_456&conver_type=1&sub_channel=
 POST /jim/converconfs/set
 ```
 
-- 鉴权：登录。
-- Body：`target_id` 必填、`conver_type > 0`、`confs` 非空。
-- 当前只保存 `msg_life_time`，其他键会被忽略。
+- 鉴权及会话权限同 GET，但仅用户身份可写。
+- Body：`target_id` 必填、`conver_type` 为 1/2、`confs` 非空。POST 为部分更新：未传键保持不变。
+- bool 仅接受 JSON true/false，不接受字符串、数字、null。生命周期仅接受非负精确整数，最大 9223372036854775807；不新增菜单上限。未知键（包括外层字段）、非法值使整个请求返回 17003，全部验证和授权成功后事务 upsert，false 正常持久化，DB 失败 17000。
 - 返回：`data: null`。
 
 ```json
@@ -1319,9 +1320,25 @@ POST /jim/converconfs/set
   "target_id":"user_456",
   "sub_channel":"",
   "conver_type":1,
-  "confs":{"msg_life_time":86400000}
+  "confs":{"msg_life_time":86400000,"forbid_forward":true,"content_protection":false,"watermark_enabled":true}
 }
 ```
+
+### 15.3 客户端通知与执行边界
+
+服务端事务 outbox 是升级客户端的唯一通知发送方。SET 完成授权后，在同一事务保存配置、递增 scope version、写入唯一 event_id；任一步失败全部回滚。无实际变化不生成事件。成功只表示配置和通知任务已持久化，不表示所有设备已收到 IM。上线前必须先执行 `commons/dbcommons/sqls/20261111.sql`（InnoDB，MySQL 8.0+）；本次仅隔离测试库执行，未迁移业务库、未部署。
+
+worker 发送已注册 `jgd:lifetime_msg`，单聊和群聊发送请求均设置顶层 `is_cmd:true`（当前环境命令消息离线保存更长）、`is_storage:true`、`is_count:false`、`is_notify_sender:true`，即命令通知、存储、不计未读、通知发送者；`is_cmd` 不放入 `msg_content`，也不是 GET 返回字段或 SET 入参。`msg_content` 内容含 `event_id`（UUID）、`version`（DB 锁串行递增）、`scope={app_key,conver_id,conver_type,sub_channel}`、`actor_id`、`target_id`、`raw_config` 完整快照与 `changed_keys`。单聊 conver_id 是双方 ID 排序后以冒号连接，群聊为群 ID。所有事件均携带原始生命周期 `type`（未存时为 0），包括 bool-only 事件；旧端按原有 0/1/7/30/90/180 菜单或其它原值秒数解释，不能省略导致旧 decoder 默认为关闭，也不猜毫秒或强改单位。涉及 bool 变化携带三个 bool 的 `confs` 快照。
+
+GET 保持原配置字段，并新增保留字段 `_config_meta={"version":9,"event_id":"UUID"}`；未产生 outbox 版本时为 `{"version":0,"event_id":""}`。元数据与配置在同一个 repeatable-read 只读事务取快照。scope 表 app_key/conver_id/sub_channel 与原 converconfs 使用相同 `utf8mb4_0900_ai_ci` 和长度，以 SQL 等价 unique 查出固定 scope_id 后锁行；hash 只作首次候选 PK。大小写/重音等价由 SQL 判断，尾空格按 NO PAD 语义区分，不做 lower/trim，也不修改旧配置列为 binary。已有非标准 collation 的业务库需在迁移前核对 schema 等价性。
+
+投递是可靠至少一次（at-least-once），不是 IM exactly-once。租约恢复崩溃，claim token 隔离旧 worker 完成写入；失败无限重试，退避上限 512 秒。同 scope 未完成前驱阻止后继，独立 scope 可继续。HTTP 超时可能已上游送达，不能阻止上游晚执行或重复；未核实 SDK msg_id 幂等契约，不靠它声称恰好一次。
+
+升级 iOS 删除 ApiManager bool 主动发送及 ViewModel 生命周期 helper。所有通知（含旧 type-only）仅触发当前身份的权威 GET。普通客户端能伪造 payload，没有来源证明，因此消息 event_id/version 不得压水位或过滤 GET；只按成功 GET 的 `_config_meta` 持久化 user/app/scope 的已确认版本/事件，并在 GET 后去重应用。GET 串行、合并提示、拒绝旧响应和跨登录响应；失败保留任务，以可取消的 1 至 60 秒封顶退避重试，不写水位。session reset 清空队列/取消 timer。生命周期缓存也按 app/user/会话隔离，不读取无法证明归属的旧 key；进入会话 GET 补齐。SDK 无子频道路由，非空 sub_channel 接收时忽略，不得误改主会话。
+
+滚动升级期间旧 App 仍会主动发送，可能与服务端双发，旧 App 忽略新字段且可能被延迟旧通知覆盖；升级接收端用 GET 避免采信旧 payload，但不能消除旧设备的显示重复。先迁移再统一切换服务端/worker，推动旧 App 升级；回滚保留 outbox/version 表。上线前须双设备联调发送者同设备、多设备、单聊反向和群普通成员、超时重复、离线恢复与账号切换。本地测试不证明真实 IM 投递。
+
+本次提供服务端配置和最小 iOS 通知适配，不提供三个开关 UI、禁止转发执行、内容保护拦截或水印绘制。内容保护需各端适配截图/录屏检测或遮挡；受 OS 能力、旧客户端和外部拍摄限制，服务端 bool 不能保证跨端禁止录屏。
 
 ## 16. 应用接口（1 个）
 
